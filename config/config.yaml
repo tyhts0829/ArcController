@@ -1,0 +1,19 @@
+# Arc Controller Configuration
+
+led_max_brightness: 15 # 0–15, where 15 is full brightness
+
+presets:
+  linear_dot_static:
+    value_style: LINEAR
+    led_style: DOT
+    behavior_style: STATIC
+
+  linear_pot_static:
+    value_style: LINEAR
+    led_style: POTENTIOMETER
+    behavior_style: STATIC
+
+  bipolar_bipolar_sine:
+    value_style: BIPOLAR
+    led_style: BIPOLAR
+    behavior_style: SINE
