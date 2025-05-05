@@ -9,6 +9,15 @@ import monome
 LOGGER = logging.getLogger(__name__)  # モジュール専用ロガー
 
 
+def fmt(v) -> str:
+    """Floats → 3桁小数、その他はそのまま文字列化"""
+    return f"{v:.3f}" if isinstance(v, float) else str(v)
+
+
+def clamp(x: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, x))
+
+
 def config_loader(cfg_path: Path = Path("config/config.yaml")) -> dict:
     """
     config/config.yaml を読み込み、辞書として返す。

@@ -26,6 +26,8 @@ class LfoStyle(enum.Enum):
     SINE = "sine"
     SAW = "saw"
     SQUARE = "square"
+    TRIANGLE = "triangle"
+    PERLIN = "perlin"
 
 
 class Mode(enum.Enum):

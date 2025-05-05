@@ -2,6 +2,8 @@ import math
 import random
 from abc import ABC, abstractmethod
 
+import noise
+
 from enums.enums import LfoStyle
 
 
@@ -37,8 +39,54 @@ class SineLfo(LfoStrategy):
         return ring_state.lfo_amplitude * math.sin(2 * math.pi * ring_state.lfo_frequency * self.t)
 
 
+class SawLfo(LfoStrategy):
+    def __init__(self):
+        self.t = 0.0
+
+    def update(self, ring_state, dt):
+        self.t += dt
+        phase = (ring_state.lfo_frequency * self.t) % 1.0  # 0..1
+        return ring_state.lfo_amplitude * (2.0 * phase - 1.0)
+
+
+class SquareLfo(LfoStrategy):
+    def __init__(self):
+        self.t = 0.0
+
+    def update(self, ring_state, dt):
+        self.t += dt
+        phase = (ring_state.lfo_frequency * self.t) % 1.0  # 0..1
+        return ring_state.lfo_amplitude if phase < 0.5 else -ring_state.lfo_amplitude
+
+
+class TriangleLfo(LfoStrategy):
+    def __init__(self):
+        self.t = 0.0
+
+    def update(self, ring_state, dt):
+        self.t += dt
+        phase = (ring_state.lfo_frequency * self.t) % 1.0  # 0..1
+        tri = 4.0 * abs(phase - 0.5) - 1.0  # -1..1
+        return ring_state.lfo_amplitude * tri
+
+
+class PerlinLfo(LfoStrategy):
+    def __init__(self):
+        self.t = 0.0
+
+    def update(self, ring_state, dt):
+        self.t += dt
+        x = ring_state.lfo_frequency * self.t
+        val = noise.pnoise1(x)
+        return ring_state.lfo_amplitude * val
+
+
 LFO_FACTORIES = {
     LfoStyle.STATIC: lambda: StaticLfo(),
     LfoStyle.RANDOM: lambda: RandomLfo(),
     LfoStyle.SINE: lambda: SineLfo(),
+    LfoStyle.SAW: lambda: SawLfo(),
+    LfoStyle.SQUARE: lambda: SquareLfo(),
+    LfoStyle.TRIANGLE: lambda: TriangleLfo(),
+    LfoStyle.PERLIN: lambda: PerlinLfo(),
 }

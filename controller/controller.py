@@ -31,6 +31,8 @@ class ArcController(monome.ArcApp):
 
     def on_arc_disconnect(self):
         LOGGER.warning("Arc disconnected")
+        self.led_renderer.all_off()
+        self.lfo_engine.stop()
 
     def on_arc_delta(self, ring, delta):
         LOGGER.debug("Ring %d Δ%+d", ring, delta)
@@ -39,8 +41,8 @@ class ArcController(monome.ArcApp):
             ring_state.current_value = self.value_processor.update(ring_state, delta)
         else:
             ring_state.lfo_frequency += delta * self.lfo_engine.speed
-            if ring_state.lfo_frequency < 0:
-                ring_state.lfo_frequency = 0
+            # if ring_state.lfo_frequency < 0:
+            #     ring_state.lfo_frequency = 0
         self.led_renderer.render(ring, ring_state)
 
     def on_arc_key(self, _, s):

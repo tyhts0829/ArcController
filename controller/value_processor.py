@@ -33,8 +33,10 @@ class ValueProcessor:
         elif style == ValueStyle.BIPOLAR:
             new_val = max(-0.5, min(0.5, new_val))
         elif style == ValueStyle.MIDI_7BIT:
-            new_val = max(0, min(127, int(new_val)))
+            new_val = round(new_val)  # 丸め
+            new_val = max(0, min(127, new_val))  # saturate
         elif style == ValueStyle.MIDI_14BIT:
-            new_val = max(0, min(16383, int(new_val)))
+            new_val = round(new_val)  # 丸め
+            new_val = max(0, min(16383, new_val))  # saturate
 
         return new_val
