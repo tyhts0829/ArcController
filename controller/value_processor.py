@@ -9,9 +9,9 @@ LOGGER = logging.getLogger("ValueProcessor")
 class ValueProcessor:
     """値の更新ロジックを担当するクラス"""
 
-    speed = 0.001  # deltaに対するvalueの加算速度
+    speed = 0.001  # ring_deltaに対するvalueの加算速度
 
-    def apply(self, delta: int, ring_state: RingState) -> float:
+    def update(self, ring_state: RingState, delta: int) -> float:
         style = ring_state.value_style
         current_value = ring_state.current_value
 

@@ -2,6 +2,7 @@ import asyncio
 
 from controller.controller import ArcController
 from controller.led_renderer import LedRenderer
+from controller.lfo_engine import LfoEngine
 from controller.value_processor import ValueProcessor
 from model.model import Model
 from util.util import setup_logging, setup_serialosc

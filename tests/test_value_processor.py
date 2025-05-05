@@ -31,31 +31,31 @@ vp = ValueProcessor()
 )
 def test_linear_clamp(delta, start, expected):
     rs = make_ring(ValueStyle.LINEAR, start)
-    assert math.isclose(vp.apply(delta, rs), expected, rel_tol=1e-6)
+    assert math.isclose(vp.update(delta, rs), expected, rel_tol=1e-6)
 
 
 def test_linear_increment():
     rs = make_ring(ValueStyle.LINEAR, 0.5)
-    new = vp.apply(delta=100, ring_state=rs)  # 0.5 + 0.1
+    new = vp.update(delta=100, ring_state=rs)  # 0.5 + 0.1
     assert math.isclose(new, 0.6, rel_tol=1e-6)
 
 
 def test_bipolar_increment():
     rs = make_ring(ValueStyle.BIPOLAR, 0.0)
-    new = vp.apply(delta=-100, ring_state=rs)  # 0.0 − 0.1
+    new = vp.update(delta=-100, ring_state=rs)  # 0.0 − 0.1
     assert math.isclose(new, -0.1, rel_tol=1e-6)
 
 
 def test_infinite():
     rs = make_ring(ValueStyle.INFINITE, 10.0)
-    assert vp.apply(delta=-5, ring_state=rs) == 5.0
+    assert vp.update(delta=-5, ring_state=rs) == 5.0
 
 
 def test_midi7bit_clamp():
     rs = make_ring(ValueStyle.MIDI_7BIT, 120)
-    assert vp.apply(delta=10, ring_state=rs) == 127  # clamp
+    assert vp.update(delta=10, ring_state=rs) == 127  # clamp
 
 
 def test_midi14bit():
     rs = make_ring(ValueStyle.MIDI_14BIT, 16000)
-    assert vp.apply(delta=200, ring_state=rs) == 16200  # within 16383
+    assert vp.update(delta=200, ring_state=rs) == 16200  # within 16383

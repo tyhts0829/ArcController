@@ -20,7 +20,7 @@ class ValueStyle(enum.Enum):
     MIDI_14BIT = "midi_14_bit"
 
 
-class Behavior(enum.Enum):
+class LfoStyle(enum.Enum):
     STATIC = "static"
     RANDOM = "random"
     SINE = "sine"
