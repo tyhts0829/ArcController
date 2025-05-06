@@ -16,12 +16,13 @@ class ArcController(monome.ArcApp):
         model: Model,
         value_processor: ValueProcessor,
         led_renderer: LedRenderer,
+        lfo_engine: LfoEngine,
     ):
         super().__init__()
         self.model = model
         self.value_processor = value_processor
         self.led_renderer = led_renderer
-        self.lfo_engine = LfoEngine(model, led_renderer)
+        self.lfo_engine = lfo_engine
 
     def on_arc_ready(self):
         LOGGER.info("Arc ready — binding LedRenderer and clearing LEDs")
@@ -41,8 +42,6 @@ class ArcController(monome.ArcApp):
             ring_state.current_value = self.value_processor.update(ring_state, delta)
         else:
             ring_state.lfo_frequency += delta * self.lfo_engine.speed
-            # if ring_state.lfo_frequency < 0:
-            #     ring_state.lfo_frequency = 0
         self.led_renderer.render(ring, ring_state)
 
     def on_arc_key(self, _, s):
