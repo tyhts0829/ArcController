@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterator
 
 from controller.lfo_strategy import LFO_FACTORIES, LfoStrategy
 from enums.enums import LedStyle, LfoStyle, ValueStyle
@@ -14,8 +14,8 @@ class RingState:
     current_value: float = 0.0
     cc_number: int = 0  # レイヤーごとに割り当てる
     value_style: ValueStyle = ValueStyle.LINEAR
-    led_style: LedStyle = LedStyle.DOT
-    lfo_style: LfoStyle = LfoStyle.TRIANGLE
+    led_style: LedStyle = LedStyle.POTENTIOMETER
+    lfo_style: LfoStyle = LfoStyle.STATIC
     lfo_strategy: LfoStrategy = field(init=False, default=None)
     _lfo_frequency: float = 0.1
     lfo_amplitude: float = 0.5  # 固定
@@ -57,3 +57,6 @@ class Model:
 
     def __getitem__(self, index: int) -> RingState:
         return self.rings[index]
+
+    def __iter__(self) -> Iterator[RingState]:
+        return iter(self.rings)

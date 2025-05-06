@@ -18,6 +18,8 @@ class LedRenderer:
         self.buffer: Optional[monome.ArcBuffer] = None
         # 各リングごとに保持するスタイルレンダラー
         self._style_renderers: Dict[int, _BaseStyleRenderer] = {}
+        # 前回描画した LED レベルをリング毎にキャッシュ
+        self._last_levels: Dict[int, List[int]] = {}
 
     def set_arc(self, arc: monome.Arc, rings: int = 4) -> None:
         self.arc = arc
@@ -36,8 +38,19 @@ class LedRenderer:
             return
 
         levels = self._build_levels(ring, ring_state)
+
+        # 前フレームとの差分チェック ― 同一ならスキップ
+        prev = self._last_levels.get(ring)
+        if prev is not None and prev == levels:
+            LOGGER.debug("LedRenderer: levels unchanged, skip ring %d", ring)
+            return
+
+        # 変更があったので描画してキャッシュを更新
         self.buffer.ring_map(ring, levels)
         self.buffer.render(self.arc)
+        # list オブジェクトをそのまま保持すると次フレームで同じ参照が再利用され
+        # 差分検出が効かないため copy() してスナップショット保存
+        self._last_levels[ring] = levels.copy()
 
     def _build_levels(self, ring: int, ring_state: RingState) -> List[int]:
         # リングごとのレンダラーを取得または生成

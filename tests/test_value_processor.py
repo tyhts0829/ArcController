@@ -31,18 +31,18 @@ vp = ValueProcessor()
 )
 def test_linear_clamp(delta, start, expected):
     rs = make_ring(ValueStyle.LINEAR, start)
-    assert math.isclose(vp.update(delta, rs), expected, rel_tol=1e-6)
+    assert math.isclose(vp.update(rs, delta), expected, rel_tol=1e-6)
 
 
 def test_linear_increment():
     rs = make_ring(ValueStyle.LINEAR, 0.5)
-    new = vp.update(delta=100, ring_state=rs)  # 0.5 + 0.1
+    new = vp.update(ring_state=rs, delta=100)  # 0.5 + 0.1
     assert math.isclose(new, 0.6, rel_tol=1e-6)
 
 
 def test_bipolar_increment():
     rs = make_ring(ValueStyle.BIPOLAR, 0.0)
-    new = vp.update(delta=-100, ring_state=rs)  # 0.0 − 0.1
+    new = vp.update(ring_state=rs, delta=-100)  # 0.0 − 0.1
     assert math.isclose(new, -0.1, rel_tol=1e-6)
 
 

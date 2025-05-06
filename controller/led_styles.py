@@ -22,6 +22,9 @@ class _BaseStyleRenderer:
 
     def __init__(self, max_brightness: int = 15):
         self.max_brightness = max_brightness
+        # 64 要素の輝度配列を一度だけ確保して再利用することで
+        # 毎フレームの GC コストを下げる
+        self._levels: List[int] = [0] * self.TICKS
 
     # ----------------- public API -----------------
     def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
@@ -52,7 +55,9 @@ class DotRenderer(_BaseStyleRenderer):
     """LED 1 つだけ点灯"""
 
     def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
-        levels = [0] * self.TICKS
+        levels = self._levels
+        # 既存リストを再利用しつつ全要素を 0 クリア
+        levels[:] = [0] * self.TICKS
         pos = self._value_to_pos(value, vstyle)
         levels[pos] = self.max_brightness
         return levels
@@ -62,7 +67,8 @@ class PotentiometerRenderer(_BaseStyleRenderer):
     """ポテンショメータ表示 (0 から現在位置まで帯状)"""
 
     def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
-        levels = [0] * self.TICKS
+        levels = self._levels
+        levels[:] = [0] * self.TICKS
         pos = self._value_to_pos(value, vstyle)
         for i in range(pos + 1):
             levels[i] = self.max_brightness
@@ -73,7 +79,8 @@ class BipolarRenderer(_BaseStyleRenderer):
     """中央基準で左右に伸びる表示"""
 
     def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
-        levels = [0] * self.TICKS
+        levels = self._levels
+        levels[:] = [0] * self.TICKS
         pos = self._value_to_pos(value, vstyle)
         center = self.TICKS // 2
         if pos >= center:

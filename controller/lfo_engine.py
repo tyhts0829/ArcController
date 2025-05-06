@@ -49,7 +49,7 @@ class LfoEngine:
                 prev = frame_start
 
                 # ----- Ring ごとの更新 -----------------------------------
-                for ring_number, ring_state in enumerate(self.model.rings):
+                for ring_number, ring_state in enumerate(self.model):
                     if ring_state.lfo_style != LfoStyle.STATIC:
                         ring_state.current_value = ring_state.lfo_strategy.update(ring_state, dt)
                     # LedRenderer は同期関数なのでそのまま呼ぶ

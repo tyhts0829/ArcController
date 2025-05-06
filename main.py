@@ -27,5 +27,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    setup_logging(level=logging.WARNING)
+    setup_logging(level=logging.DEBUG)
     asyncio.run(main())
