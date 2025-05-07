@@ -14,8 +14,8 @@ class RingState:
     current_value: float = 0.0
     cc_number: int = 0  # レイヤーごとに割り当てる
     value_style: ValueStyle = ValueStyle.LINEAR
-    led_style: LedStyle = LedStyle.POTENTIOMETER
-    lfo_style: LfoStyle = LfoStyle.STATIC
+    led_style: LedStyle = LedStyle.DOT
+    lfo_style: LfoStyle = LfoStyle.SINE
     lfo_strategy: LfoStrategy = field(init=False, default=None)
     _lfo_frequency: float = 0.1
     lfo_amplitude: float = 0.5  # 固定
@@ -28,7 +28,7 @@ class RingState:
         self.lfo_style = lfo_style
         self.lfo_strategy = LFO_FACTORIES[lfo_style]()  # DI
 
-    # 変数を書き換えたときにログ出力するフック
+    # 変数を書き換えたときにログ出力するフック # TODO この方式はやめる
     def __setattr__(self, name: str, value: Any) -> None:
         old = self.__dict__.get(name, None)
         super().__setattr__(name, value)

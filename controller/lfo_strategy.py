@@ -31,40 +31,27 @@ class RandomLfo(LfoStrategy):
 
 
 class SineLfo(LfoStrategy):
-    def __init__(self):
-        self.phase = 0.0  # 0..1
-
     def update(self, ring_state, dt):
-        # フェーズを積分することで周波数変更時も value が連続
-        self.phase = (self.phase + ring_state.lfo_frequency * dt) % 1.0
-        return ring_state.lfo_amplitude * math.sin(2.0 * math.pi * self.phase)
+        ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
+        return ring_state.lfo_amplitude * math.sin(2.0 * math.pi * ring_state.lfo_phase)
 
 
 class SawLfo(LfoStrategy):
-    def __init__(self):
-        self.phase = 0.0  # 0..1
-
     def update(self, ring_state, dt):
-        self.phase = (self.phase + ring_state.lfo_frequency * dt) % 1.0
-        return ring_state.lfo_amplitude * (2.0 * self.phase - 1.0)
+        ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
+        return ring_state.lfo_amplitude * (2.0 * ring_state.lfo_phase - 1.0)
 
 
 class SquareLfo(LfoStrategy):
-    def __init__(self):
-        self.phase = 0.0  # 0..1
-
     def update(self, ring_state, dt):
-        self.phase = (self.phase + ring_state.lfo_frequency * dt) % 1.0
-        return ring_state.lfo_amplitude if self.phase < 0.5 else -ring_state.lfo_amplitude
+        ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
+        return ring_state.lfo_amplitude if ring_state.lfo_phase < 0.5 else -ring_state.lfo_amplitude
 
 
 class TriangleLfo(LfoStrategy):
-    def __init__(self):
-        self.phase = 0.0  # 0..1
-
     def update(self, ring_state, dt):
-        self.phase = (self.phase + ring_state.lfo_frequency * dt) % 1.0
-        tri = 4.0 * abs(self.phase - 0.5) - 1.0  # -1..1
+        ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
+        tri = 4.0 * abs(ring_state.lfo_phase - 0.5) - 1.0  # -1..1
         return ring_state.lfo_amplitude * tri
 
 
