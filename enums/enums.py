@@ -5,6 +5,7 @@ class LedStyle(enum.Enum):
     POTENTIOMETER = "potentiometer"
     BIPOLAR = "bipolar"
     DOT = "dot"
+    PERLIN = "perlin"
 
 
 class ValueStyle(enum.Enum):

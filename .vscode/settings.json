@@ -1,0 +1,94 @@
+{
+  "saveEditorLayout.list": [
+    {
+      "name": "all main files",
+      "documents": [
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/main.py",
+          "column": 1,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/controller.py",
+          "column": 2,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/led_renderer.py",
+          "column": 3,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/led_styles.py",
+          "column": 4,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_engine.py",
+          "column": 5,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_strategy.py",
+          "column": 6,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/value_processor.py",
+          "column": 7,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/enums/enums.py",
+          "column": 8,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/model/model.py",
+          "column": 9,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/util/util.py",
+          "column": 10,
+          "pinned": false
+        }
+      ],
+      "layout": {
+        "orientation": 0,
+        "groups": [
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 565
+          },
+          {
+            "size": 726
+          }
+        ]
+      }
+    }
+  ]
+}

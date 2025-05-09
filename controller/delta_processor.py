@@ -2,23 +2,21 @@ import logging
 
 from enums.enums import ValueStyle
 from model.model import RingState
+from util.util import clamp
 
 LOGGER = logging.getLogger("ValueProcessor")
 
 
-class ValueProcessor:
+class DeltaProcessor:
     """値の更新ロジックを担当するクラス"""
 
-    speed = 0.001  # ring_deltaに対するvalueの加算速度
-
-    def update(self, ring_state: RingState, delta: int) -> float:
+    def update_value(self, ring_state: RingState, delta: int) -> float:
         style = ring_state.value_style
         current_value = ring_state.current_value
 
         # --- スタイル別増分計算 ---------------------------------------
         if style in (ValueStyle.LINEAR, ValueStyle.BIPOLAR):
-            inc = delta * self.speed
-            new_val = current_value + inc
+            new_val = current_value + delta
         elif style == ValueStyle.INFINITE:
             new_val = current_value + delta  # そのまま加算
         elif style in (ValueStyle.MIDI_7BIT, ValueStyle.MIDI_14BIT):
@@ -40,3 +38,6 @@ class ValueProcessor:
             new_val = max(0, min(16383, new_val))  # saturate
 
         return new_val
+
+    def update_frequency(self, ring_state: RingState, delta: float) -> float:
+        return clamp(ring_state.lfo_frequency + delta, 0.0, 1.0)

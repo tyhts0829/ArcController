@@ -1,9 +1,9 @@
 import logging
 
 import monome
+from controller.delta_processor import DeltaProcessor
 from controller.led_renderer import LedRenderer
 from controller.lfo_engine import LfoEngine
-from controller.value_processor import ValueProcessor
 from enums.enums import LfoStyle
 from model.model import Model
 
@@ -14,15 +14,19 @@ class ArcController(monome.ArcApp):
     def __init__(
         self,
         model: Model,
-        value_processor: ValueProcessor,
+        value_processor: DeltaProcessor,
         led_renderer: LedRenderer,
         lfo_engine: LfoEngine,
+        value_gain: float,
+        lfo_freq_gain: float,
     ):
         super().__init__()
         self.model = model
-        self.value_processor = value_processor
+        self.delta_processor = value_processor
         self.led_renderer = led_renderer
         self.lfo_engine = lfo_engine
+        self.value_gain = value_gain
+        self.lfo_freq_gain = lfo_freq_gain
 
     def on_arc_ready(self):
         LOGGER.info("Arc ready — binding LedRenderer and clearing LEDs")
@@ -39,9 +43,11 @@ class ArcController(monome.ArcApp):
         LOGGER.debug("Ring %d Δ%+d", ring, delta)
         ring_state = self.model[ring]
         if ring_state.lfo_style == LfoStyle.STATIC:
-            ring_state.current_value = self.value_processor.update(ring_state, delta)
+            scaled_delta = delta * self.value_gain
+            ring_state.current_value = self.delta_processor.update_value(ring_state, scaled_delta)
         else:
-            ring_state.lfo_frequency += delta * self.lfo_engine.speed
+            scaled_delta = delta * self.lfo_freq_gain
+            ring_state.lfo_frequency = self.delta_processor.update_frequency(ring_state, scaled_delta)
         self.led_renderer.render(ring, ring_state)
 
     def on_arc_key(self, _, s):

@@ -1,23 +1,22 @@
 import logging
 from typing import Dict, List, Optional
 
-import monome  # pymonome ライブラリ
-from controller.led_styles import _RENDERER_MAP, _BaseStyleRenderer, get_renderer
-from enums.enums import LedStyle, ValueStyle
+import monome
+from controller.led_styles import _RENDERER_MAP, _BaseStyle, get_renderer
 from model.model import RingState
+from util.hardware_spec import ARC_SPEC, ArcSpec
 
 LOGGER = logging.getLogger("LedRenderer")
 
 
 class LedRenderer:
-    TICKS_PER_RING = 64
-
-    def __init__(self, max_brightness: int = 10) -> None:
+    def __init__(self, max_brightness: int, spec: ArcSpec = ARC_SPEC):
         self.max_brightness = max_brightness
+        self.spec = spec
         self.arc: Optional[monome.Arc] = None
         self.buffer: Optional[monome.ArcBuffer] = None
         # 各リングごとに保持するスタイルレンダラー
-        self._style_renderers: Dict[int, _BaseStyleRenderer] = {}
+        self._style_renderers: Dict[int, _BaseStyle] = {}
         # 前回描画した LED レベルをリング毎にキャッシュ
         self._last_levels: Dict[int, List[int]] = {}
 
@@ -28,7 +27,7 @@ class LedRenderer:
 
     def all_off(self) -> None:
         """全ての LED を消灯"""
-        for n in range(4):
+        for n in range(self.spec.rings_per_device):
             self.arc.ring_all(n, 0)
 
     def render(self, ring: int, ring_state: RingState) -> None:

@@ -11,13 +11,12 @@ class LfoEngine:
     `start()` で task を起動し、`stop()` でキャンセルする。
     """
 
-    def __init__(self, model: Model, led_renderer: LedRenderer, fps: int = 60):
+    def __init__(self, model: Model, led_renderer: LedRenderer, fps: int):
         self.model = model
         self.led_renderer = led_renderer
         self.fps = fps
         self._running: bool = False
         self._task: asyncio.Task | None = None
-        self.speed = 0.0005
 
     # ---------------------------------------------------------------------
     # Public API

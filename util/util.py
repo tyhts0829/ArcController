@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 import yaml
+from omegaconf import OmegaConf
 
 import monome
 
@@ -18,12 +19,11 @@ def clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
 
 
-def config_loader(cfg_path: Path = Path("config/config.yaml")) -> dict:
+def config_loader(cfg_path: Path = Path("config/config.yaml")) -> OmegaConf:
     """
-    config/config.yaml を読み込み、辞書として返す。
+    config/config.yaml を OmegaConf で読み込み、DictConfig として返す。
     """
-    with cfg_path.open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    return OmegaConf.load(str(cfg_path))
 
 
 def setup_logging(level: int = logging.INFO):
