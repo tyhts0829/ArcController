@@ -20,9 +20,9 @@ class LedRenderer:
         # 前回描画した LED レベルをリング毎にキャッシュ
         self._last_levels: Dict[int, List[int]] = {}
 
-    def set_arc(self, arc: monome.Arc, rings: int = 4) -> None:
+    def set_arc(self, arc: monome.Arc) -> None:
         self.arc = arc
-        self.buffer = monome.ArcBuffer(rings=rings)
+        self.buffer = monome.ArcBuffer(rings=self.spec.rings_per_device)
         LOGGER.info("LedRenderer bound to Arc (id=%s)", getattr(arc, "id", "?"))
 
     def all_off(self) -> None:

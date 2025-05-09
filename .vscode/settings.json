@@ -1,7 +1,7 @@
 {
   "saveEditorLayout.list": [
     {
-      "name": "all main files",
+      "name": "all",
       "documents": [
         {
           "fsPath": "/Users/tyhts0829/Documents/Arc2/main.py",
@@ -24,17 +24,17 @@
           "pinned": false
         },
         {
-          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_engine.py",
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/delta_processor.py",
           "column": 5,
           "pinned": false
         },
         {
-          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_strategy.py",
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_engine.py",
           "column": 6,
           "pinned": false
         },
         {
-          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/value_processor.py",
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_strategy.py",
           "column": 7,
           "pinned": false
         },
@@ -52,13 +52,18 @@
           "fsPath": "/Users/tyhts0829/Documents/Arc2/util/util.py",
           "column": 10,
           "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/config/config.yaml",
+          "column": 11,
+          "pinned": false
         }
       ],
       "layout": {
         "orientation": 0,
         "groups": [
           {
-            "size": 220
+            "size": 1192
           },
           {
             "size": 220
@@ -82,10 +87,13 @@
             "size": 220
           },
           {
-            "size": 565
+            "size": 220
           },
           {
-            "size": 726
+            "size": 220
+          },
+          {
+            "size": 220
           }
         ]
       }

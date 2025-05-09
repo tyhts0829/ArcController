@@ -9,9 +9,8 @@ from model.model import Model
 from util.util import config_loader, setup_logging, setup_serialosc
 
 
-async def main() -> None:
+async def main(cfg) -> None:
     loop = asyncio.get_running_loop()
-    cfg = config_loader()
     model = Model()
     value_processor = DeltaProcessor()
     led_renderer = LedRenderer(max_brightness=cfg.globals.led_renderer.max_brightness)
@@ -31,6 +30,7 @@ async def main() -> None:
 
 if __name__ == "__main__":
     cfg = config_loader()
-    log_level = getattr(logging, cfg.globals.logging.level.upper(), logging.WARNING)
+    level_name = cfg.globals.logging.level.upper()
+    log_level = getattr(logging, level_name, logging.WARNING)
     setup_logging(level=log_level)
-    asyncio.run(main())
+    asyncio.run(main(cfg))

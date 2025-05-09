@@ -2,7 +2,6 @@ import asyncio
 import logging
 from pathlib import Path
 
-import yaml
 from omegaconf import OmegaConf
 
 import monome

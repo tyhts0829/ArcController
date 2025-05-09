@@ -56,13 +56,10 @@ class TriangleLfo(LfoStrategy):
 
 
 class PerlinLfo(LfoStrategy):
-    def __init__(self):
-        self.x = 0.0  # 累積距離
-
     def update(self, ring_state, dt):
         # x を積分して連続性を確保
-        self.x += ring_state.lfo_frequency * dt
-        val = noise.pnoise1(self.x)
+        ring_state.lfo_phase += ring_state.lfo_frequency * dt
+        val = noise.pnoise1(ring_state.lfo_phase)
         return ring_state.lfo_amplitude * val
 
 

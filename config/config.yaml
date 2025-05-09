@@ -6,59 +6,12 @@ globals:
   logging:
     level: "WARNING"
 
-  # LFO エンジン設定（controller/lfo_engine.py）
   lfo_engine:
-    # フレームレート
     fps: 60
 
   controller:
     value_gain: 0.001 # ringΔに対するvalueの増分
     lfo_freq_gain: 0.0005 # ringΔに対するlfo周波数の増分
 
-  # LED レンダラー設定（controller/led_renderer.py）
   led_renderer:
-    # 最大輝度
-    max_brightness: 15
-
-# ------------------------------------------------------------
-# モデル初期値
-# ------------------------------------------------------------
-model:
-  # RingState のデフォルト値
-  ring_defaults:
-    # MIDI CC 番号
-    cc_number: 0
-    # 値のスタイル
-    value_style: "linear" # LINEAR, BIPOLAR, INFINITE, MIDI_7BIT, MIDI_14BIT
-    # LED 表示スタイル
-    led_style: "noise" # DOT, POTENTIOMETER, BIPOLAR, NOISE
-    # LFO スタイル
-    lfo_style: "perlin" # STATIC, RANDOM, SINE, SAW, SQUARE, TRIANGLE, PERLIN
-    # LFO 周波数（0.0〜1.0）
-    lfo_frequency: 0.1
-    # LFO 振幅（0.0〜1.0）
-    lfo_amplitude: 0.5
-
-# ------------------------------------------------------------
-# （今後追加予定）レイヤー定義
-# ------------------------------------------------------------
-layers:
-  - name: "Layer 1"
-    # Model が持つリング数と同じにする
-    rings: 4
-    # 各リングに割り当てる CC 番号（順番にモデルに適用）
-    cc_numbers: [0, 1, 2, 3]
-  # - name: "Layer 2"
-  #   rings: 4
-  #   cc_numbers: [4, 5, 6, 7]
-
-# ------------------------------------------------------------
-# （今後追加予定）プリセット定義
-# ------------------------------------------------------------
-presets:
-  - name: "Default"
-    layers:
-      - ring_values: [0.0, 0.0, 0.0, 0.0]
-        lfo_styles: ["static", "static", "static", "static"]
-      # - ring_values: [0.5, 0.2, 0.8, 0.1]
-      #   lfo_styles: ["sine", "perlin", "bipolar", "noise"]
+    max_brightness: 10
