@@ -11,6 +11,7 @@ import logging
 import math
 import random
 from abc import ABC, abstractmethod
+from functools import cached_property
 from typing import Type
 
 import noise
@@ -56,6 +57,15 @@ class BaseLedStyle(ABC):
             LOGGER.warning("Unknown ValueStyle %s -> pos=0", style)
 
         return int(norm * (self.spec.leds_per_ring - 1)) % self.spec.leds_per_ring
+
+    # ----------------- meta ---------------------
+    @cached_property
+    def style_enum(self) -> LedStyle | str:
+        """
+        自身のクラスに対応する LedStyle を返す。
+        未登録の場合はクラス名文字列を返す。
+        """
+        return LED_CLASS_TO_STYLE_ENUM.get(self.__class__, self.__class__.__name__)
 
 
 class DotStyle(BaseLedStyle):
@@ -165,6 +175,9 @@ LED_STYLE_MAP: dict[LedStyle, Type[BaseLedStyle]] = {
     LedStyle.BIPOLAR: BipolarStyle,
     LedStyle.PERLIN: PerlinLedStyle,
 }
+
+# 逆引き: クラス → LedStyle
+LED_CLASS_TO_STYLE_ENUM: dict[type[BaseLedStyle], LedStyle] = {v: k for k, v in LED_STYLE_MAP.items()}
 
 
 def get_led_instance(style: LedStyle, max_brightness: int = 15) -> BaseLedStyle:

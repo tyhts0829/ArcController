@@ -1,3 +1,10 @@
+"""
+controller.lfo_engine
+---------------------
+
+asyncio タスクとして動作し、各リングの LFO を計算して LED を更新するエンジン。
+"""
+
 import asyncio
 import logging
 
@@ -11,10 +18,21 @@ LOGGER = logging.getLogger(__name__)
 class LfoEngine:
     """
     asyncio タスクで動く LFO エンジン。
-    `start()` で task を起動し、`stop()` でキャンセルする。
+
+    Args:
+        model (Model): LED 描画対象となるデータモデル。
+        led_renderer (LedRenderer): LED を描画するクラス。
+        fps (int): 1 秒あたりの更新フレーム数。
     """
 
     def __init__(self, model: Model, led_renderer: LedRenderer, fps: int):
+        """依存オブジェクトを受け取り、LFO エンジンを初期化する。
+
+        Args:
+            model (Model): LED 描画対象となるデータモデル。
+            led_renderer (LedRenderer): LED を描画するクラス。
+            fps (int): 1 秒あたりの更新フレーム数。
+        """
         self.model = model
         self.led_renderer = led_renderer
         self.fps = fps
@@ -27,14 +45,20 @@ class LfoEngine:
     # Public API
     # ---------------------------------------------------------------------
     def start(self) -> None:
-        """イベントループ上に LFO タスクを登録して走らせる"""
+        """イベントループに LFO タスクを登録して走らせる。
+
+        二重起動を避けるため、すでに実行中なら何もしない。
+        """
         LOGGER.info("LfoEngine: starting")
         if not self._running:
             self._running = True
             self._task = asyncio.create_task(self._loop())
 
     def stop(self) -> None:
-        """タスクを取り消して終了させる"""
+        """LFO タスクをキャンセルして停止する。
+
+        タスク未実行の場合は何もしない。
+        """
         LOGGER.info("LfoEngine: stopping")
         self._running = False
         if self._task is not None:
@@ -44,6 +68,7 @@ class LfoEngine:
     # 内部: メインループ
     # ---------------------------------------------------------------------
     async def _loop(self) -> None:
+        """内部コルーチン: FPS に従って各リングの LFO を更新し、LED を描画し続ける。"""
         frame_interval = 1.0 / self.fps
         loop = asyncio.get_running_loop()
         prev = loop.time()
@@ -58,8 +83,11 @@ class LfoEngine:
                 for ring_number, ring_state in enumerate(self.model):
 
                     lfo = self._lfo.get(ring_number)
-                    if lfo is None or lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
-                        LOGGER.debug("LfoEngine: LFO style changed, re-instantiating")
+                    if lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
+                        before_style = None if lfo is None else lfo.style_enum
+                        LOGGER.info(
+                            f"LFO style changed, re-instantiating. before={before_style}, after={ring_state.lfo_style}"
+                        )
                         # LFO スタイルが変わったら新規インスタンス化
                         lfo = get_lfo_instance(ring_state.lfo_style)
                         self._lfo[ring_number] = lfo

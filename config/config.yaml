@@ -4,7 +4,7 @@
 globals:
   # ログレベル（main.py の setup_logging に渡す）
   logging:
-    level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level: "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
   lfo_engine:
     fps: 60
@@ -12,6 +12,24 @@ globals:
   controller:
     value_gain: 0.001 # ringΔに対するvalueの増分
     lfo_freq_gain: 0.0005 # ringΔに対するlfo周波数の増分
+    preset_threshold: 200 # presetの切り替えに必要なringΔの閾値
 
   led_renderer:
     max_brightness: 10
+
+# ------------------------------------------------------------
+# プリセット定義
+# ------------------------------------------------------------
+presets:
+  - name: default
+    value_style: linear
+    led_style: perlin
+    lfo_style: perlin
+  - name: dot
+    value_style: linear
+    led_style: dot
+    lfo_style: static
+  - name: bipolar_sine
+    value_style: bipolar
+    led_style: bipolar
+    lfo_style: sine

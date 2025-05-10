@@ -12,6 +12,9 @@ from util.util import config_loader, setup_logging, setup_serialosc
 async def main(cfg) -> None:
     loop = asyncio.get_running_loop()
     model = Model()
+    # Apply default preset to all rings
+    for ring in model:
+        ring.apply_preset(cfg.presets[0])
     value_processor = DeltaProcessor()
     led_renderer = LedRenderer(max_brightness=cfg.globals.led_renderer.max_brightness)
     lfo_engine = LfoEngine(model, led_renderer, fps=cfg.globals.lfo_engine.fps)
@@ -20,6 +23,8 @@ async def main(cfg) -> None:
         value_processor=value_processor,
         led_renderer=led_renderer,
         lfo_engine=lfo_engine,
+        presets=cfg.presets,
+        preset_threshold=cfg.globals.controller.preset_threshold,
         value_gain=cfg.globals.controller.value_gain,
         lfo_freq_gain=cfg.globals.controller.lfo_freq_gain,
     )

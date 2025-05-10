@@ -1,3 +1,11 @@
+"""
+util.util
+---------
+
+文字列フォーマット、範囲クランプ、YAML 読み込み、ロギング設定、SerialOsc セットアップなど
+Arc アプリ全体で共有されるユーティリティ関数群。
+"""
+
 import asyncio
 import logging
 from pathlib import Path
@@ -10,23 +18,50 @@ LOGGER = logging.getLogger(__name__)
 
 
 def fmt(v) -> str:
-    """Floats → 3桁小数、その他はそのまま文字列化"""
+    """数値を文字列へフォーマットするヘルパ。
+
+    Args:
+        v (Any): 整形対象。`float` の場合は小数 3 桁へ丸める。
+
+    Returns:
+        str: 整形後の文字列。
+    """
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
 def clamp(x: float, lo: float, hi: float) -> float:
+    """値を指定範囲へクランプする。
+
+    Args:
+        x (float): 入力値。
+        lo (float): 下限。
+        hi (float): 上限。
+
+    Returns:
+        float: クランプされた値。
+    """
     return max(lo, min(hi, x))
 
 
 def config_loader(cfg_path: Path = Path("config/config.yaml")) -> OmegaConf:
-    """
-    config/config.yaml を OmegaConf で読み込み、DictConfig として返す。
+    """YAML 設定ファイルを読み込み `OmegaConf` オブジェクトを返す。
+
+    Args:
+        cfg_path (Path, optional): YAML ファイルのパス。デフォルトは
+            `config/config.yaml`。
+
+    Returns:
+        OmegaConf: 読み込まれた DictConfig。
     """
     return OmegaConf.load(str(cfg_path))
 
 
 def setup_logging(level: int = logging.INFO):
-    """ログレベルを引数で受け取り、StreamHandler だけを設定する"""
+    """ルートロガーに `StreamHandler` を設定する。
+
+    Args:
+        level (int, optional): ログレベル。デフォルトは `logging.INFO`。
+    """
     logger = logging.getLogger()
     logger.setLevel(level)
     # 既存ハンドラをクリア
@@ -41,27 +76,13 @@ def setup_logging(level: int = logging.INFO):
 
 
 def setup_serialosc(app) -> monome.SerialOsc:
-    """
-    SerialOsc インスタンスを生成し、Arc デバイスが追加された際に自動接続する
-    コールバックを登録して返す。
-    使い方
-    async def main() -> None:
-        loop = asyncio.get_running_loop()
-        app = OperateArcApp()
+    """Arc デバイス検出時に自動接続する `SerialOsc` を生成する。
 
-        # SerialOsc をセットアップして接続
-        serialosc = setup_serialosc(app)
-        await serialosc.connect()
+    Args:
+        app (monome.ArcApp): 接続対象の ArcApp インスタンス。
 
-        # 無限待機（KeyboardInterrupt で終了）
-        await loop.create_future()
-
-
-    if __name__ == "__main__":
-        try:
-            asyncio.run(main())
-        except KeyboardInterrupt:
-            LOGGER.info("Exiting on keyboard interrupt.")
+    Returns:
+        monome.SerialOsc: 準備済みの `SerialOsc` インスタンス。
     """
     serialosc = monome.SerialOsc()
 

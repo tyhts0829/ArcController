@@ -2,6 +2,7 @@ import logging
 import math
 import random
 from abc import ABC, abstractmethod
+from functools import cached_property
 
 import noise
 
@@ -18,9 +19,19 @@ class BaseLfoStyle(ABC):
     速度 (speed) やゲイン (amplitude) は RingState 側に保持 させ、ノブ回転で即時変更できるようにする
     """
 
+    # ----------------- public API -----------------
     @abstractmethod
     def update(self, ring_state: RingState, dt: float) -> float:
         raise NotImplementedError
+
+    # ----------------- meta ---------------------
+    @cached_property
+    def style_enum(self) -> LfoStyle | str:
+        """
+        自身のクラスに対応する LfoStyle を返す
+        未登録の場合はクラス名文字列を返す
+        """
+        return LFO_CLASS_TO_STYLE_ENUM.get(self.__class__, self.__class__.__name__)
 
 
 class StaticLfoStyle(BaseLfoStyle):
@@ -90,6 +101,8 @@ LFO_STYLE_MAP = {
     LfoStyle.TRIANGLE: TriangleLfoStyle,
     LfoStyle.PERLIN: PerlinLfoStyle,
 }
+# 逆引き: クラス → LfoStyle
+LFO_CLASS_TO_STYLE_ENUM: dict[type[BaseLfoStyle], LfoStyle] = {v: k for k, v in LFO_STYLE_MAP.items()}
 
 
 def get_lfo_instance(style: LfoStyle) -> BaseLfoStyle:
