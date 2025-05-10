@@ -1,8 +1,11 @@
 import asyncio
+import logging
 
 from controller.led_renderer import LedRenderer
-from enums.enums import LfoStyle
+from controller.lfo_styles import LFO_STYLE_MAP, BaseLfoStyle, get_lfo_instance
 from model.model import Model
+
+LOGGER = logging.getLogger(__name__)
 
 
 class LfoEngine:
@@ -17,18 +20,22 @@ class LfoEngine:
         self.fps = fps
         self._running: bool = False
         self._task: asyncio.Task | None = None
+        # 各リングごとに保持するLFO
+        self._lfo: dict[int, BaseLfoStyle] = {}
 
     # ---------------------------------------------------------------------
     # Public API
     # ---------------------------------------------------------------------
     def start(self) -> None:
         """イベントループ上に LFO タスクを登録して走らせる"""
+        LOGGER.info("LfoEngine: starting")
         if not self._running:
             self._running = True
             self._task = asyncio.create_task(self._loop())
 
     def stop(self) -> None:
         """タスクを取り消して終了させる"""
+        LOGGER.info("LfoEngine: stopping")
         self._running = False
         if self._task is not None:
             self._task.cancel()
@@ -49,8 +56,15 @@ class LfoEngine:
 
                 # ----- Ring ごとの更新 -----------------------------------
                 for ring_number, ring_state in enumerate(self.model):
-                    if ring_state.lfo_style != LfoStyle.STATIC:
-                        ring_state.current_value = ring_state.lfo_strategy.update(ring_state, dt)
+
+                    lfo = self._lfo.get(ring_number)
+                    if lfo is None or lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
+                        LOGGER.debug("LfoEngine: LFO style changed, re-instantiating")
+                        # LFO スタイルが変わったら新規インスタンス化
+                        lfo = get_lfo_instance(ring_state.lfo_style)
+                        self._lfo[ring_number] = lfo
+
+                    ring_state.current_value = lfo.update(ring_state, dt)
                     # LedRenderer は同期関数なのでそのまま呼ぶ
                     self.led_renderer.render(ring_number, ring_state)
 

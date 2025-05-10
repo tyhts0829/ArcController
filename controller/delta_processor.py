@@ -4,7 +4,7 @@ from enums.enums import ValueStyle
 from model.model import RingState
 from util.util import clamp
 
-LOGGER = logging.getLogger("ValueProcessor")
+LOGGER = logging.getLogger(__name__)
 
 
 class DeltaProcessor:

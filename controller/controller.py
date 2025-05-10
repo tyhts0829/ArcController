@@ -7,7 +7,7 @@ from controller.lfo_engine import LfoEngine
 from enums.enums import LfoStyle
 from model.model import Model
 
-LOGGER = logging.getLogger("ArcController")
+LOGGER = logging.getLogger(__name__)
 
 
 class ArcController(monome.ArcApp):
@@ -19,7 +19,7 @@ class ArcController(monome.ArcApp):
         lfo_engine: LfoEngine,
         value_gain: float,
         lfo_freq_gain: float,
-    ):
+    ) -> None:
         super().__init__()
         self.model = model
         self.delta_processor = value_processor
@@ -28,28 +28,28 @@ class ArcController(monome.ArcApp):
         self.value_gain = value_gain
         self.lfo_freq_gain = lfo_freq_gain
 
-    def on_arc_ready(self):
-        LOGGER.info("Arc ready — binding LedRenderer and clearing LEDs")
+    def on_arc_ready(self) -> None:
+        LOGGER.info("Arc ready")
         self.led_renderer.set_arc(self.arc)  # DIのためself.arcをここでセットする関数呼び出し
         self.led_renderer.all_off()
         self.lfo_engine.start()
 
-    def on_arc_disconnect(self):
-        LOGGER.warning("Arc disconnected")
+    def on_arc_disconnect(self) -> None:
+        LOGGER.info("Arc disconnected")
         self.led_renderer.all_off()
         self.lfo_engine.stop()
 
-    def on_arc_delta(self, ring, delta):
-        LOGGER.debug("Ring %d Δ%+d", ring, delta)
-        ring_state = self.model[ring]
+    def on_arc_delta(self, ring_idx: int, delta: int) -> None:
+        LOGGER.debug("Ring %d Δ%+d", ring_idx, delta)
+        ring_state = self.model[ring_idx]
         if ring_state.lfo_style == LfoStyle.STATIC:
             scaled_delta = delta * self.value_gain
             ring_state.current_value = self.delta_processor.update_value(ring_state, scaled_delta)
         else:
             scaled_delta = delta * self.lfo_freq_gain
             ring_state.lfo_frequency = self.delta_processor.update_frequency(ring_state, scaled_delta)
-        self.led_renderer.render(ring, ring_state)
+        self.led_renderer.render(ring_idx, ring_state)
 
-    def on_arc_key(self, _, s):
+    def on_arc_key(self, x: int, s: bool) -> None:
         action = "pressed" if s else "released"
-        LOGGER.info("key %s", action)
+        LOGGER.debug("key %s", action)

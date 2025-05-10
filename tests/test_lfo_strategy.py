@@ -5,15 +5,15 @@ import types
 import noise
 import pytest
 
-from controller.lfo_strategy import (
-    LFO_FACTORIES,
-    PerlinLfo,
-    RandomLfo,
-    SawLfo,
-    SineLfo,
-    SquareLfo,
-    StaticLfo,
-    TriangleLfo,
+from controller.lfo_styles import (
+    LFO_STYLE_MAP,
+    PerlinLfoStyle,
+    RandomLfoStyle,
+    SawLfoStyle,
+    SineLfoStyle,
+    SquareLfoStyle,
+    StaticLfoStyle,
+    TriangleLfoStyle,
 )
 from enums.enums import LfoStyle
 
@@ -27,14 +27,14 @@ class DummyState:
 
 def test_static_lfo():
     state = DummyState(current_value=5.0)
-    lfo = StaticLfo()
+    lfo = StaticLfoStyle()
     result = lfo.update(state, dt=0.5)
     assert result == 5.0
 
 
 def test_random_lfo_monkeypatched(monkeypatch):
     state = DummyState(lfo_frequency=2.0)
-    lfo = RandomLfo()
+    lfo = RandomLfoStyle()
     # force random.random() to return 0.75
     monkeypatch.setattr(random, "random", lambda: 0.75)
     jitter = lfo.update(state, dt=0.2)
@@ -44,7 +44,7 @@ def test_random_lfo_monkeypatched(monkeypatch):
 
 def test_sine_lfo_phase_and_value():
     state = DummyState(lfo_frequency=1.0, lfo_amplitude=2.0)
-    lfo = SineLfo()
+    lfo = SineLfoStyle()
     # initial phase = 0.0
     value = lfo.update(state, dt=0.25)
     # phase -> 0.25, sin(2π*0.25) = 1.0, output = 2.0
@@ -60,9 +60,9 @@ def test_sine_lfo_phase_and_value():
 @pytest.mark.parametrize(
     "strategy_class, phase_val, expected",
     [
-        (SawLfo, 0.25, lambda amp, ph: amp * (2 * ph - 1)),
-        (SquareLfo, 0.25, lambda amp, ph: amp if ph < 0.5 else -amp),
-        (TriangleLfo, 0.25, lambda amp, ph: amp * (4 * abs(ph - 0.5) - 1)),
+        (SawLfoStyle, 0.25, lambda amp, ph: amp * (2 * ph - 1)),
+        (SquareLfoStyle, 0.25, lambda amp, ph: amp if ph < 0.5 else -amp),
+        (TriangleLfoStyle, 0.25, lambda amp, ph: amp * (4 * abs(ph - 0.5) - 1)),
     ],
 )
 def test_waveform_lfos(strategy_class, phase_val, expected):
@@ -76,7 +76,7 @@ def test_waveform_lfos(strategy_class, phase_val, expected):
 
 def test_perlin_lfo_monkeypatched(monkeypatch):
     state = DummyState(lfo_frequency=0.5, lfo_amplitude=4.0)
-    lfo = PerlinLfo()
+    lfo = PerlinLfoStyle()
     # simulate pnoise1 returning 0.3
     monkeypatch.setattr(noise, "pnoise1", lambda x: 0.3)
     out1 = lfo.update(state, dt=0.2)
@@ -90,11 +90,11 @@ def test_perlin_lfo_monkeypatched(monkeypatch):
 
 
 def test_factory_mapping():
-    for style, factory in LFO_FACTORIES.items():
+    for style, factory in LFO_STYLE_MAP.items():
         instance = factory()
         # check instance type matches expected class
         class_name = style.name.title() + "Lfo"
         assert instance.__class__.__name__.lower() == class_name.lower()
     # also check coverage for all enum members
     all_styles = {s for s in LfoStyle}
-    assert set(LFO_FACTORIES.keys()) == all_styles
+    assert set(LFO_STYLE_MAP.keys()) == all_styles

@@ -4,7 +4,7 @@
 globals:
   # ログレベル（main.py の setup_logging に渡す）
   logging:
-    level: "WARNING"
+    level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
   lfo_engine:
     fps: 60

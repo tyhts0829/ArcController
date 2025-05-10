@@ -34,7 +34,7 @@
           "pinned": false
         },
         {
-          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_strategy.py",
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/lfo_styles.py",
           "column": 7,
           "pinned": false
         },
@@ -63,9 +63,6 @@
         "orientation": 0,
         "groups": [
           {
-            "size": 1192
-          },
-          {
             "size": 220
           },
           {
@@ -91,6 +88,9 @@
           },
           {
             "size": 220
+          },
+          {
+            "size": 1022
           },
           {
             "size": 220

@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 
 import monome
 
-LOGGER = logging.getLogger(__name__)  # モジュール専用ロガー
+LOGGER = logging.getLogger(__name__)
 
 
 def fmt(v) -> str:

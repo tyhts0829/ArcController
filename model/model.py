@@ -2,11 +2,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Iterator
 
-from controller.lfo_strategy import LFO_FACTORIES, LfoStrategy
 from enums.enums import LedStyle, LfoStyle, ValueStyle
 from util.util import fmt
 
-LOGGER = logging.getLogger("RingState")
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -16,24 +15,16 @@ class RingState:
     value_style: ValueStyle = ValueStyle.LINEAR
     led_style: LedStyle = LedStyle.PERLIN
     lfo_style: LfoStyle = LfoStyle.PERLIN
-    lfo_strategy: LfoStrategy = field(init=False, default=None)
     lfo_frequency: float = 0.1
     lfo_amplitude: float = 0.5  # 固定
     lfo_phase: float = 0.0  # 固定
 
-    def __post_init__(self):
-        self.set_lfo(self.lfo_style)
-
-    def set_lfo(self, lfo_style: LfoStyle):
-        self.lfo_style = lfo_style
-        self.lfo_strategy = LFO_FACTORIES[lfo_style]()  # DI
-
-    # 変数を書き換えたときにログ出力するフック # TODO この方式はやめる
+    # 変数を書き換えたときにログ出力するフック
     def __setattr__(self, name: str, value: Any) -> None:
         old = self.__dict__.get(name, None)
         super().__setattr__(name, value)
         if old != value:
-            LOGGER.info("%s: %s -> %s", name, fmt(old), fmt(value))
+            LOGGER.debug("%s: %s -> %s", name, fmt(old), fmt(value))
 
 
 @dataclass
@@ -45,8 +36,8 @@ class LayerState:
 class Model:
     rings: list[RingState] = field(default_factory=lambda: [RingState() for _ in range(4)])
 
-    def __getitem__(self, index: int) -> RingState:
-        return self.rings[index]
+    def __getitem__(self, ring_idx: int) -> RingState:
+        return self.rings[ring_idx]
 
     def __iter__(self) -> Iterator[RingState]:
         return iter(self.rings)

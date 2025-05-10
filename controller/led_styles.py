@@ -10,84 +10,86 @@ from __future__ import annotations
 import logging
 import math
 import random
-from typing import Dict, List, Type
+from abc import ABC, abstractmethod
+from typing import Type
 
 import noise
 
 from enums.enums import LedStyle, ValueStyle
+from util.hardware_spec import ARC_SPEC, ArcSpec
 from util.util import clamp
 
 LOGGER = logging.getLogger(__name__)
 
 
-class _BaseStyle:
+class BaseLedStyle(ABC):
     """共通ヘルパの抽象基底"""
 
-    TICKS = 64  # 1 リングの LED 数
-
-    def __init__(self, max_brightness: int = 15):
+    def __init__(self, max_brightness: int, spec: ArcSpec = ARC_SPEC):
         self.max_brightness = max_brightness
+        self.spec = spec
         # 64 要素の輝度配列を一度だけ確保して再利用することで
         # 毎フレームの GC コストを下げる
-        self._levels: List[int] = [0] * self.TICKS
+        self._levels: list[int] = [0] * self.spec.leds_per_ring
 
     # ----------------- public API -----------------
-    def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
+    @abstractmethod
+    def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         """64 要素 (0‒15) の輝度リストを返す"""
         raise NotImplementedError
 
     # ----------------- helper ---------------------
-    def _value_to_pos(self, value: float, vstyle: ValueStyle) -> int:
+    def _value_to_pos(self, value: float, style: ValueStyle) -> int:
         """ValueStyle → 0‒63 位置へマップ"""
-        if vstyle == ValueStyle.LINEAR:
+        if style == ValueStyle.LINEAR:
             norm = value
-        elif vstyle == ValueStyle.BIPOLAR:
+        elif style == ValueStyle.BIPOLAR:
             norm = value + 0.5
-        elif vstyle == ValueStyle.INFINITE:
+        elif style == ValueStyle.INFINITE:
             norm = value % 1.0
-        elif vstyle == ValueStyle.MIDI_7BIT:
+        elif style == ValueStyle.MIDI_7BIT:
             norm = value / 127.0
-        elif vstyle == ValueStyle.MIDI_14BIT:
+        elif style == ValueStyle.MIDI_14BIT:
             norm = value / 16383.0
         else:
             norm = 0.0
-            LOGGER.warning("Unknown ValueStyle %s -> pos=0", vstyle)
+            LOGGER.warning("Unknown ValueStyle %s -> pos=0", style)
 
-        return int(norm * (self.TICKS - 1)) % self.TICKS
+        return int(norm * (self.spec.leds_per_ring - 1)) % self.spec.leds_per_ring
 
 
-class DotStyle(_BaseStyle):
+class DotStyle(BaseLedStyle):
     """LED 1 つだけ点灯"""
 
-    def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
+    def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         levels = self._levels
         # 既存リストを再利用しつつ全要素を 0 クリア
-        levels[:] = [0] * self.TICKS
-        pos = self._value_to_pos(value, vstyle)
+        levels[:] = [0] * self.spec.leds_per_ring
+        pos = self._value_to_pos(value, style)
         levels[pos] = self.max_brightness
         return levels
 
 
-class PotentiometerStyle(_BaseStyle):
+class PotentiometerStyle(BaseLedStyle):
     """ポテンショメータ表示 (0 から現在位置まで帯状)"""
 
-    def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
+    def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         levels = self._levels
-        levels[:] = [0] * self.TICKS
-        pos = self._value_to_pos(value, vstyle)
+        levels[:] = [0] * self.spec.leds_per_ring
+        pos = self._value_to_pos(value, style)
         for i in range(pos + 1):
             levels[i] = self.max_brightness
         return levels
 
 
-class BipolarStyle(_BaseStyle):
+class BipolarStyle(BaseLedStyle):
     """中央基準で左右に伸びる表示"""
 
-    def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
+    def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         levels = self._levels
-        levels[:] = [0] * self.TICKS
-        pos = self._value_to_pos(value, vstyle)
-        center = self.TICKS // 2
+        levels[:] = [0] * self.spec.leds_per_ring
+        pos = self._value_to_pos(value, style)
+        center = self.spec.leds_per_ring // 2
         if pos >= center:
             rng = range(center, pos + 1)
         else:
@@ -99,7 +101,7 @@ class BipolarStyle(_BaseStyle):
         return levels
 
 
-class PerlinRenderer(_BaseStyle):
+class PerlinLedStyle(BaseLedStyle):
     """Perlin ノイズ空間を使って LED を揺らす表示"""
 
     # ---------------------- パラメータ定数 ----------------------
@@ -107,12 +109,12 @@ class PerlinRenderer(_BaseStyle):
     MINIMUM_NOISE_RADIUS = PHI / 2.0
     NOISE_RADIUS_SCALE = 10.0
     MOVE_SPEED = 0.1
-    NOISE_POSITION_INCREMENT = 0.02
+    NOISE_POSITION_INCREMENT = 0.01
     NOISE_POSITION_Y_SCALE = 0.3
     BRIGHTNESS_SCALE = 2.0
     BRIGHTNESS_OFFSET = 0.5
-    _COS_TABLE = [math.cos(math.tau * i / _BaseStyle.TICKS) for i in range(_BaseStyle.TICKS)]
-    _SIN_TABLE = [math.sin(math.tau * i / _BaseStyle.TICKS) for i in range(_BaseStyle.TICKS)]
+    _COS_TABLE = [math.cos(math.tau * i / ARC_SPEC.leds_per_ring) for i in range(ARC_SPEC.leds_per_ring)]
+    _SIN_TABLE = [math.sin(math.tau * i / ARC_SPEC.leds_per_ring) for i in range(ARC_SPEC.leds_per_ring)]
 
     def __init__(self, max_brightness: int = 15) -> None:
         super().__init__(max_brightness)
@@ -133,10 +135,10 @@ class PerlinRenderer(_BaseStyle):
         return clamp(int(raw), 0, self.max_brightness)
 
     # --------------------- public interface -------------------
-    def build_levels(self, value: float, vstyle: ValueStyle) -> List[int]:
+    def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         """64 個の輝度レベルを返すメイン関数"""
         levels = self._levels
-        levels[:] = [0] * self.TICKS
+        levels[:] = [0] * self.spec.leds_per_ring
 
         # ノイズ円半径と走査位置を更新
         radius = self.MINIMUM_NOISE_RADIUS + value * self.NOISE_RADIUS_SCALE
@@ -145,7 +147,7 @@ class PerlinRenderer(_BaseStyle):
         # LED ごとに輝度計算 (③ coords 計算をインライン化 + テーブル参照)
         pos = self.noise_position
         y_scale = self.NOISE_POSITION_Y_SCALE * pos
-        for i in range(self.TICKS):
+        for i in range(self.spec.leds_per_ring):
             nx = radius * self._COS_TABLE[i] + pos
             ny = radius * self._SIN_TABLE[i] + y_scale
             n = noise.pnoise2(nx, ny, base=self.noise_seed)
@@ -157,16 +159,16 @@ class PerlinRenderer(_BaseStyle):
 # -----------------------------------------------------------------------------
 # Factory
 # -----------------------------------------------------------------------------
-_RENDERER_MAP: Dict[LedStyle, Type[_BaseStyle]] = {
+LED_STYLE_MAP: dict[LedStyle, Type[BaseLedStyle]] = {
     LedStyle.DOT: DotStyle,
     LedStyle.POTENTIOMETER: PotentiometerStyle,
     LedStyle.BIPOLAR: BipolarStyle,
-    LedStyle.PERLIN: PerlinRenderer,
+    LedStyle.PERLIN: PerlinLedStyle,
 }
 
 
-def get_renderer(style: LedStyle, max_brightness: int = 15) -> _BaseStyle:
-    cls = _RENDERER_MAP.get(style)
+def get_led_instance(style: LedStyle, max_brightness: int = 15) -> BaseLedStyle:
+    cls = LED_STYLE_MAP.get(style)
     if cls is None:
         LOGGER.warning("Unknown LedStyle %s – fallback to DOT", style)
         cls = DotStyle
