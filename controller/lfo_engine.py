@@ -83,7 +83,7 @@ class LfoEngine:
                 for ring_number, ring_state in enumerate(self.model):
 
                     lfo = self._lfo.get(ring_number)
-                    if lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
+                    if lfo is None or lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
                         before_style = None if lfo is None else lfo.style_enum
                         LOGGER.info(
                             f"LFO style changed, re-instantiating. before={before_style}, after={ring_state.lfo_style}"

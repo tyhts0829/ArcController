@@ -163,6 +163,10 @@ class PerlinLedStyle(BaseLedStyle):
             n = noise.pnoise2(nx, ny, base=self.noise_seed)
             levels[i] = self._noise_to_brightness(n)
 
+        if pos > 1e4:
+            # オーバーフロー防止
+            self.noise_position = 0.0
+
         return levels
 
 

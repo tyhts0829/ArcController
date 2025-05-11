@@ -95,7 +95,7 @@ class LedRenderer:
         """
         led_style = self._styles.get(ring_idx)
         # スタイルが変わった場合は新規インスタンス化
-        if led_style.__class__ is not LED_STYLE_MAP.get(ring_state.led_style):
+        if led_style is None or led_style.__class__ is not LED_STYLE_MAP.get(ring_state.led_style):
             before_style = None if led_style is None else led_style.style_enum
             LOGGER.info(f"LED style changed, re-instantiating. before={before_style}, after={ring_state.led_style}")
             led_style = get_led_instance(ring_state.led_style, self.max_brightness)

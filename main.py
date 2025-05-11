@@ -8,6 +8,8 @@ from controller.lfo_engine import LfoEngine
 from model.model import Model
 from util.util import config_loader, setup_logging, setup_serialosc
 
+LOGGER = logging.getLogger(__name__)
+
 
 async def main(cfg) -> None:
     loop = asyncio.get_running_loop()
@@ -30,7 +32,14 @@ async def main(cfg) -> None:
     )
     serialosc = setup_serialosc(app)
     await serialosc.connect()
-    await loop.create_future()
+    try:
+        await loop.create_future()
+    except asyncio.CancelledError:
+        pass
+    finally:
+        LOGGER.info("Shutting down: stopping LFO and turning off LEDs")
+        lfo_engine.stop()
+        led_renderer.all_off()
 
 
 if __name__ == "__main__":
@@ -38,4 +47,7 @@ if __name__ == "__main__":
     level_name = cfg.globals.logging.level.upper()
     log_level = getattr(logging, level_name, logging.WARNING)
     setup_logging(level=log_level)
-    asyncio.run(main(cfg))
+    try:
+        asyncio.run(main(cfg))
+    except KeyboardInterrupt:
+        LOGGER.info("Received exit signal, shutting down application")
