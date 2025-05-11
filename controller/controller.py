@@ -7,12 +7,12 @@ monome Arc デバイスからの入力イベントを Model / LED / LFO へ橋�
 """
 
 import logging
-import math
 
 import monome
 from controller.delta_processor import DeltaProcessor
 from controller.led_renderer import LedRenderer
 from controller.lfo_engine import LfoEngine
+from controller.preset_manager import PresetManager
 from enums.enums import LfoStyle
 from model.model import Model, RingState
 
@@ -41,8 +41,7 @@ class ArcController(monome.ArcApp):
         value_processor: DeltaProcessor,
         led_renderer: LedRenderer,
         lfo_engine: LfoEngine,
-        presets: list,
-        preset_threshold: int,
+        preset_manager: PresetManager,
         value_gain: float,
         lfo_freq_gain: float,
     ) -> None:
@@ -63,9 +62,7 @@ class ArcController(monome.ArcApp):
         self.delta_processor = value_processor
         self.led_renderer = led_renderer
         self.lfo_engine = lfo_engine
-        self.presets = presets
-        self.preset_threshold = preset_threshold
-        self._preset_delta: dict[int, int] = {i: 0 for i in range(len(model.rings))}
+        self.preset_manager = preset_manager
         self._key_pressed = False
         self.value_gain = value_gain
         self.lfo_freq_gain = lfo_freq_gain
@@ -96,7 +93,9 @@ class ArcController(monome.ArcApp):
         ring_state = self.model[ring_idx]
 
         if self._key_pressed:
-            self._cycle_preset(ring_idx, delta, ring_state)
+            changed = self.preset_manager.process_delta(ring_idx, delta, ring_state)
+            if changed:
+                self.led_renderer.render(ring_idx, ring_state)
             return
 
         self._update_ring_state(ring_idx, delta, ring_state)
@@ -104,27 +103,6 @@ class ArcController(monome.ArcApp):
     # ---------------------------------------------------------------------
     # Internal helpers
     # ---------------------------------------------------------------------
-    def _cycle_preset(self, ring_idx: int, delta: int, ring_state: RingState) -> None:
-        """キー押下中に累積 Δ をしきい値と比較してプリセットを循環切替する内部ヘルパ。
-
-        Args:
-            ring_idx (int): リングインデックス。
-            delta (int): 今回の増分 Δ。
-            ring_state (RingState): 対象リングの状態。
-        """
-        acc = self._preset_delta[ring_idx] + delta
-        steps = math.trunc(acc / self.preset_threshold)
-        self._preset_delta[ring_idx] = acc - steps * self.preset_threshold
-
-        LOGGER.debug(f"Preset cycling: ring={ring_idx} acc={acc} steps={steps} residual={self._preset_delta[ring_idx]}")
-
-        if steps == 0:
-            return
-
-        num_presets = len(self.presets)
-        ring_state.preset_index = (ring_state.preset_index + steps) % num_presets
-        ring_state.apply_preset(self.presets[ring_state.preset_index])
-        self.led_renderer.render(ring_idx, ring_state)
 
     def _update_ring_state(self, ring_idx: int, delta: int, ring_state: RingState) -> None:
         """リングの現在値または LFO 周波数を更新し、LED を再描画する内部ヘルパ。
@@ -154,5 +132,4 @@ class ArcController(monome.ArcApp):
         action = "pressed" if s else "released"
         LOGGER.debug("key %s", action)
         if not s:
-            for k in self._preset_delta:
-                self._preset_delta[k] = 0
+            self.preset_manager.reset()

@@ -52,6 +52,8 @@ class LedRenderer:
 
     def all_off(self) -> None:
         """全ての LED を消灯"""
+        if self.arc is None or self.buffer is None:
+            raise RuntimeError("call set_arc() before all_off()")
         for n in range(self.spec.rings_per_device):
             self.arc.ring_all(n, 0)
 

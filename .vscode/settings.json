@@ -54,8 +54,28 @@
           "pinned": false
         },
         {
-          "fsPath": "/Users/tyhts0829/Documents/Arc2/config/config.yaml",
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/controller/preset_manager.py",
           "column": 11,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/tests/test_delta_processor.py",
+          "column": 12,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/tests/test_preset_manager.py",
+          "column": 13,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/tests/test_util.py",
+          "column": 14,
+          "pinned": false
+        },
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/config/config.yaml",
+          "column": 15,
           "pinned": false
         }
       ],
@@ -90,10 +110,40 @@
             "size": 220
           },
           {
-            "size": 1022
+            "size": 220
           },
           {
             "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          },
+          {
+            "size": 220
+          }
+        ]
+      }
+    },
+    {
+      "name": "main only",
+      "documents": [
+        {
+          "fsPath": "/Users/tyhts0829/Documents/Arc2/main.py",
+          "column": 1,
+          "pinned": false
+        }
+      ],
+      "layout": {
+        "orientation": 0,
+        "groups": [
+          {
+            "size": 3052
           }
         ]
       }
