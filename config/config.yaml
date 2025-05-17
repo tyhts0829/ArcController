@@ -6,30 +6,33 @@ globals:
   logging:
     level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+component:
   lfo_engine:
     fps: 60
-
-  controller:
-    value_gain: 0.001 # ringΔに対するvalueの増分
-    lfo_freq_gain: 0.0005 # ringΔに対するlfo周波数の増分
-    preset_threshold: 200 # presetの切り替えに必要なringΔの閾値
-
   led_renderer:
     max_brightness: 10
+
+mode:
+  preset_select_mode:
+    threshold: 200
 
 # ------------------------------------------------------------
 # プリセット定義
 # ------------------------------------------------------------
 presets:
-  - name: default
+  - name: potentiometer
+    value_style: linear
+    led_style: potentiometer
+    lfo_style: static
+  - name: dot
+    value_style: infinite
+    led_style: dot
+    lfo_style: static
+  - name: bipolar
+    value_style: bipolar
+    led_style: bipolar
+    lfo_style: static
+  - name: perlin
     value_style: linear
     led_style: perlin
     lfo_style: perlin
-  - name: dot
-    value_style: linear
-    led_style: dot
-    lfo_style: static
-  - name: bipolar_sine
-    value_style: bipolar
-    led_style: bipolar
-    lfo_style: sine

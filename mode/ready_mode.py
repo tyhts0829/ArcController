@@ -1,0 +1,53 @@
+"""mode.ready_mode
+------------------
+
+ReadyMode は Arc デバイスが *ready*（接続完了）になった直後に一度だけ呼び出される
+初期化用モードです。LEDRenderer にデバイスを紐付け、LED を全消灯し、LFO エンジンを
+起動するだけなので、キー／リング入力は無視します。
+"""
+
+from __future__ import annotations
+
+import monome
+from controller.led_renderer import LedRenderer
+from controller.lfo_engine import LfoEngine
+from mode.base_mode import BaseMode
+from model.model import Model
+
+
+class ReadyMode(BaseMode):
+    """Arc 接続直後の初期化処理を担当するモード。"""
+
+    def __init__(self, model: Model, led_renderer: LedRenderer, lfo_engine: LfoEngine) -> None:
+        self._model = model
+        self._led_renderer = led_renderer
+        self._lfo_engine = lfo_engine
+
+    # ------------------------------------------------------------------
+    # public callbacks (BaseMode interface)
+    # ------------------------------------------------------------------
+    def on_arc_ready(self, arc: monome.Arc) -> None:
+        """Arc が接続された直後に呼ばれる。
+
+        Args:
+            arc (monome.Arc): 接続された Arc デバイス。
+        """
+        # デバイスを LedRenderer に DI し、クリーンな状態から開始
+        self._led_renderer.set_arc(arc)
+        self._led_renderer.all_off()
+        # LFO アニメーションをスタート
+        self._lfo_engine.start()
+        # 初回のrendering を行う
+
+        for layer in self._model:
+            for ring_idx, ring_state in enumerate(layer):
+                self._led_renderer.render_value(ring_idx, ring_state)
+
+    def on_arc_disconnect(self) -> None:
+        pass
+
+    def on_arc_delta(self, ring_idx: int, delta: int) -> None:
+        pass
+
+    def on_arc_key(self, x: int, pressed: bool) -> None:
+        pass

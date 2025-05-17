@@ -19,6 +19,11 @@ class BaseLfoStyle(ABC):
     速度 (speed) やゲイン (amplitude) は RingState 側に保持 させ、ノブ回転で即時変更できるようにする
     """
 
+    @classmethod
+    @abstractmethod
+    def style(cls) -> LfoStyle:
+        """対応する LfoStyle を返す（各サブクラスで実装）"""
+
     # ----------------- public API -----------------
     @abstractmethod
     def update(self, ring_state: RingState, dt: float) -> float:
@@ -26,22 +31,27 @@ class BaseLfoStyle(ABC):
 
     # ----------------- meta ---------------------
     @cached_property
-    def style_enum(self) -> LfoStyle | str:
-        """
-        自身のクラスに対応する LfoStyle を返す
-        未登録の場合はクラス名文字列を返す
-        """
-        return LFO_CLASS_TO_STYLE_ENUM.get(self.__class__, self.__class__.__name__)
+    def style_enum(self) -> LfoStyle:
+        """自身のクラスに対応する LfoStyle を返す"""
+        return self.__class__.style()
 
 
 class StaticLfoStyle(BaseLfoStyle):
     """LFOを使わないときに指定するクラス"""
+
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.STATIC
 
     def update(self, ring_state: RingState, dt: float) -> float:  # 何もしない
         return ring_state.current_value
 
 
 class RandomLfoStyle(BaseLfoStyle):
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.RANDOM
+
     def update(self, ring_state: RingState, dt: float) -> float:
         jitter = (random.random() - 0.5) * ring_state.lfo_frequency * dt
         return jitter
@@ -49,6 +59,10 @@ class RandomLfoStyle(BaseLfoStyle):
 
 class SineLfoStyle(BaseLfoStyle):
     """正弦波を返すクラス"""
+
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.SINE
 
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
@@ -58,6 +72,10 @@ class SineLfoStyle(BaseLfoStyle):
 class SawLfoStyle(BaseLfoStyle):
     """鋸波を返すクラス"""
 
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.SAW
+
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
         return ring_state.lfo_amplitude * (2.0 * ring_state.lfo_phase - 1.0)
@@ -65,6 +83,10 @@ class SawLfoStyle(BaseLfoStyle):
 
 class SquareLfoStyle(BaseLfoStyle):
     """矩形波を返すクラス"""
+
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.SQUARE
 
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
@@ -74,6 +96,10 @@ class SquareLfoStyle(BaseLfoStyle):
 class TriangleLfoStyle(BaseLfoStyle):
     """三角波を返すクラス"""
 
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.TRIANGLE
+
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase = (ring_state.lfo_phase + ring_state.lfo_frequency * dt) % 1.0
         tri = 4.0 * abs(ring_state.lfo_phase - 0.5) - 1.0  # -1..1
@@ -82,6 +108,10 @@ class TriangleLfoStyle(BaseLfoStyle):
 
 class PerlinLfoStyle(BaseLfoStyle):
     """Perlin noiseを返すクラス"""
+
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.PERLIN
 
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase += ring_state.lfo_frequency * dt
@@ -102,7 +132,7 @@ LFO_STYLE_MAP = {
     LfoStyle.PERLIN: PerlinLfoStyle,
 }
 # 逆引き: クラス → LfoStyle
-LFO_CLASS_TO_STYLE_ENUM: dict[type[BaseLfoStyle], LfoStyle] = {v: k for k, v in LFO_STYLE_MAP.items()}
+LFO_CLASS_TO_STYLE_ENUM: dict[type[BaseLfoStyle], LfoStyle] = {cls: cls.style() for cls in LFO_STYLE_MAP.values()}
 
 
 def get_lfo_instance(style: LfoStyle) -> BaseLfoStyle:

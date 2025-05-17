@@ -6,11 +6,25 @@ RingState から LED レベル配列を構築し monome Arc へ描画を行う�
 """
 
 import logging
+from functools import wraps
 from typing import Optional
+
+
+def _require_arc_set(method):
+    """メソッド実行前に ``self.arc`` と ``self.buffer`` が設定されているか検証するデコレータ。"""
+
+    @wraps(method)
+    def _wrapper(self, *args, **kwargs):
+        if self.arc is None or self.buffer is None:
+            raise RuntimeError(f"call set_arc() before {method.__name__}()")
+        return method(self, *args, **kwargs)
+
+    return _wrapper
+
 
 import monome
 from controller.led_styles import LED_STYLE_MAP, BaseLedStyle, get_led_instance
-from model.model import RingState
+from model.model import LayerState, RingState
 from util.hardware_spec import ARC_SPEC, ArcSpec
 
 LOGGER = logging.getLogger(__name__)
@@ -39,6 +53,7 @@ class LedRenderer:
         self.buffer: Optional[monome.ArcBuffer] = None
         self._styles: dict[int, BaseLedStyle] = {}  # 各リングごとの LED スタイルを保持するキャッシュ
         self._last_levels: dict[int, list[int]] = {}  # 各リングごとの LED レベルを保持するキャッシュ
+        self._render_blocked: bool = False  # LED 描画をブロックするフラグ
 
     def set_arc(self, arc: monome.Arc) -> None:
         """Arc インスタンスと描画バッファを設定する。
@@ -50,14 +65,56 @@ class LedRenderer:
         self.buffer = monome.ArcBuffer(rings=self.spec.rings_per_device)
         LOGGER.info("set monome.Arc and monome.ArcBuffer")
 
+    @_require_arc_set
     def all_off(self) -> None:
         """全ての LED を消灯"""
-        if self.arc is None or self.buffer is None:
-            raise RuntimeError("call set_arc() before all_off()")
+        assert self.arc is not None, "mypy: _require_arc_set guarantees self.arc"
         for n in range(self.spec.rings_per_device):
             self.arc.ring_all(n, 0)
 
-    def render(self, ring_idx: int, ring_state: RingState) -> None:
+    @_require_arc_set
+    def highlight(self, ring_idx: int, level: int = 1) -> None:
+        """指定したリングの LED を全灯する。他のリングは消灯する。
+
+        Args:
+            ring_idx (int): 全灯対象リングのインデックス (0‒3)。
+            level (int, optional): 点灯させる輝度レベル (0‒15)。デフォルトは 1。
+        """
+        LOGGER.debug("highlight: ring_idx=%d, level=%d", ring_idx, level)
+        assert self.arc is not None, "mypy: _require_arc_set guarantees self.arc"
+        self.all_off()
+        self.arc.ring_all(ring_idx, level)
+
+    def set_render_block(self, blocked: bool = True) -> None:
+        """LED 描画をブロック／解除する。
+
+        Args:
+            blocked (bool, optional): True で描画をブロック、False で解除。デフォルトは True。
+        """
+        self._render_blocked = blocked
+        if blocked:
+            LOGGER.info("LED rendering blocked")
+        else:
+            LOGGER.info("LED rendering unblocked")
+
+    @_require_arc_set
+    def render_layer(self, layer: LayerState, *, force: bool = False) -> None:
+        """LayerState 全体を LED へ描画する。
+
+        Args:
+            layer (LayerState): 各リングの RingState を格納したシーケンス。
+            force (bool, optional): True の場合、前フレームと変化がなくても強制描画する。デフォルトは False。
+        """
+        LOGGER.debug("render_layer called")
+        assert self.arc is not None and self.buffer is not None, "mypy: _require_arc_set guarantees attributes"
+        if self._render_blocked:
+            return
+        self.all_off()
+        for ring_idx, ring_state in enumerate(layer):
+            self.render_value(ring_idx, ring_state, force=force)
+
+    @_require_arc_set
+    def render_value(self, ring_idx: int, ring_state: RingState, *, force: bool = False) -> None:
         """RingState の値を LED へ描画する。
 
         Args:
@@ -67,14 +124,14 @@ class LedRenderer:
         Raises:
             RuntimeError: `set_arc()` を呼び出す前に実行された場合。
         """
-        if self.arc is None or self.buffer is None:
-            raise RuntimeError("call set_arc() before render()")
-
+        assert self.arc is not None and self.buffer is not None, "mypy: _require_arc_set guarantees attributes"
+        if self._render_blocked:
+            return
         levels = self._build_levels(ring_idx, ring_state)
 
         # 前フレームとの差分チェック ― 同一ならスキップ
         prev = self._last_levels.get(ring_idx)
-        if prev is not None and prev == levels:
+        if (not force) and prev is not None and prev == levels:
             # LOGGER.debug(f"levels unchanged, skip ring {ring_idx}")
             return
 

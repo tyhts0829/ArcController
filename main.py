@@ -1,11 +1,16 @@
 import asyncio
 import logging
 
+from omegaconf import OmegaConf
+
 from controller.controller import ArcController
-from controller.delta_processor import DeltaProcessor
 from controller.led_renderer import LedRenderer
 from controller.lfo_engine import LfoEngine
-from controller.preset_manager import PresetManager
+from mode.disconnect_mode import DisconnectMode
+from mode.layer_select_mode import LayerSelectMode
+from mode.preset_select_mode import PresetSelectMode
+from mode.ready_mode import ReadyMode
+from mode.value_send_mode import ValueSendMode
 from model.model import Model
 from util.util import config_loader, setup_logging, setup_serialosc
 
@@ -13,28 +18,33 @@ LOGGER = logging.getLogger(__name__)
 
 
 async def main(cfg) -> None:
+    """アプリケーションのメインエントリーポイント。
+
+    Args:
+        cfg (OmegaConf): 設定ファイルの内容を保持する `OmegaConf` オブジェクト。
+    """
     loop = asyncio.get_running_loop()
-    model = Model()
-    # Apply default preset to all rings
-    for ring in model:
-        ring.apply_preset(cfg.presets[0])
-    value_processor = DeltaProcessor()
-    led_renderer = LedRenderer(max_brightness=cfg.globals.led_renderer.max_brightness)
-    lfo_engine = LfoEngine(model, led_renderer, fps=cfg.globals.lfo_engine.fps)
-    preset_manager = PresetManager(
-        presets=cfg.presets,
-        threshold=cfg.globals.controller.preset_threshold,
-        num_rings=len(model.rings),
+    model = Model.from_config(cfg)
+    led_renderer = LedRenderer(max_brightness=cfg.component.led_renderer.max_brightness)
+    lfo_engine = LfoEngine(model=model, led_renderer=led_renderer, fps=cfg.component.lfo_engine.fps)
+    ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
+    value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer)
+    layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)
+    disconnect_mode = DisconnectMode(lfo_engine=lfo_engine)
+    preset_select_mode = PresetSelectMode(
+        model=model,
+        threshold=cfg.mode.preset_select_mode.threshold,
+        led_renderer=led_renderer,
     )
     app = ArcController(
         model=model,
-        value_processor=value_processor,
-        led_renderer=led_renderer,
-        lfo_engine=lfo_engine,
-        preset_manager=preset_manager,
-        value_gain=cfg.globals.controller.value_gain,
-        lfo_freq_gain=cfg.globals.controller.lfo_freq_gain,
+        ready_mode=ready_mode,
+        value_send_mode=value_send_mode,
+        layer_select_mode=layer_select_mode,
+        preset_select_mode=preset_select_mode,
+        disconnect_mode=disconnect_mode,
     )
+
     serialosc = setup_serialosc(app)
     await serialosc.connect()
     try:
@@ -49,7 +59,7 @@ async def main(cfg) -> None:
 
 if __name__ == "__main__":
     cfg = config_loader()
-    level_name = cfg.globals.logging.level.upper()
+    level_name = cfg.globals.logging.level.upper()  # type: ignore
     log_level = getattr(logging, level_name, logging.WARNING)
     setup_logging(level=log_level)
     try:

@@ -9,15 +9,16 @@ Arc アプリ全体で共有されるユーティリティ関数群。
 import asyncio
 import logging
 from pathlib import Path
+from typing import Any
 
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf
 
 import monome
 
 LOGGER = logging.getLogger(__name__)
 
 
-def fmt(v) -> str:
+def fmt(v: Any) -> str:
     """数値を文字列へフォーマットするヘルパ。
 
     Args:
@@ -29,7 +30,7 @@ def fmt(v) -> str:
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
-def clamp(x: float, lo: float, hi: float) -> float:
+def clamp(x: float | int, lo: float | int, hi: float | int) -> int | float:
     """値を指定範囲へクランプする。
 
     Args:
@@ -43,7 +44,7 @@ def clamp(x: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, x))
 
 
-def config_loader(cfg_path: Path = Path("config/config.yaml")) -> OmegaConf:
+def config_loader(cfg_path: Path = Path("config/config.yaml")) -> DictConfig | ListConfig:
     """YAML 設定ファイルを読み込み `OmegaConf` オブジェクトを返す。
 
     Args:
@@ -56,7 +57,7 @@ def config_loader(cfg_path: Path = Path("config/config.yaml")) -> OmegaConf:
     return OmegaConf.load(str(cfg_path))
 
 
-def setup_logging(level: int = logging.INFO):
+def setup_logging(level: int = logging.INFO) -> None:
     """ルートロガーに `StreamHandler` を設定する。
 
     Args:
@@ -75,7 +76,7 @@ def setup_logging(level: int = logging.INFO):
     logger.addHandler(stream_handler)
 
 
-def setup_serialosc(app) -> monome.SerialOsc:
+def setup_serialosc(app: monome.ArcApp) -> monome.SerialOsc:
     """Arc デバイス検出時に自動接続する `SerialOsc` を生成する。
 
     Args:

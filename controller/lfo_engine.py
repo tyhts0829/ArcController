@@ -10,7 +10,8 @@ import logging
 
 from controller.led_renderer import LedRenderer
 from controller.lfo_styles import LFO_STYLE_MAP, BaseLfoStyle, get_lfo_instance
-from model.model import Model
+from enums.enums import LfoStyle
+from model.model import Model, RingState
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,8 +39,8 @@ class LfoEngine:
         self.fps = fps
         self._running: bool = False
         self._task: asyncio.Task | None = None
-        # 各リングごとに保持するLFO
-        self._lfo: dict[int, BaseLfoStyle] = {}
+        # 各レイヤー・リングごとに保持する LFO
+        self._lfos_on_model: dict[tuple[int, int], BaseLfoStyle] = {}
 
     # ---------------------------------------------------------------------
     # Public API
@@ -79,22 +80,34 @@ class LfoEngine:
                 dt = frame_start - prev
                 prev = frame_start
 
-                # ----- Ring ごとの更新 -----------------------------------
-                for ring_number, ring_state in enumerate(self.model):
+                # ----- LFO 更新 & LED 描画 --------------------------------
+                for layer_idx, layer in enumerate(self.model):
+                    for ring_idx, ring_state in enumerate(layer):
+                        # LFO が STATIC の場合はスキップ
+                        if ring_state.lfo_style == LfoStyle.STATIC:
+                            continue
 
-                    lfo = self._lfo.get(ring_number)
-                    if lfo is None or lfo.__class__ is not LFO_STYLE_MAP.get(ring_state.lfo_style):
-                        before_style = None if lfo is None else lfo.style_enum
-                        LOGGER.info(
-                            f"LFO style changed, re-instantiating. before={before_style}, after={ring_state.lfo_style}"
-                        )
-                        # LFO スタイルが変わったら新規インスタンス化
-                        lfo = get_lfo_instance(ring_state.lfo_style)
-                        self._lfo[ring_number] = lfo
+                        key = (layer_idx, ring_idx)
+                        expected_cls = LFO_STYLE_MAP.get(ring_state.lfo_style)
+                        lfo = self._lfos_on_model.get(key)
 
-                    ring_state.current_value = lfo.update(ring_state, dt)
-                    # LedRenderer は同期関数なのでそのまま呼ぶ
-                    self.led_renderer.render(ring_number, ring_state)
+                        # スタイル変更時はインスタンスを作り直す
+                        if lfo is None or lfo.__class__ is not expected_cls:
+                            before_style = None if lfo is None else lfo.style_enum
+                            LOGGER.info(
+                                "LFO style changed, re-instantiating. before=%s, after=%s",
+                                before_style,
+                                ring_state.lfo_style,
+                            )
+                            lfo = get_lfo_instance(ring_state.lfo_style)
+                            self._lfos_on_model[key] = lfo
+
+                        # 値更新
+                        ring_state.current_value = lfo.update(ring_state, dt)
+
+                        # アクティブレイヤーのみ LED 描画
+                        if layer_idx == self.model.active_layer_idx:
+                            self.led_renderer.render_value(ring_idx, ring_state)
 
                 # ----- FPS 制御 ------------------------------------------
                 elapsed = loop.time() - frame_start
