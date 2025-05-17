@@ -1,12 +1,13 @@
-import types
-import sys
 import math
+import sys
+import types
+
 import pytest
 
 # Provide a stub noise module for import
-sys.modules.setdefault('noise', types.SimpleNamespace(pnoise1=lambda x, base=0: 0.0))
+sys.modules.setdefault("noise", types.SimpleNamespace(pnoise1=lambda x, base=0: 0.0))
 
-from src.controller import lfo_styles
+from lfo import lfo_styles
 from src.model.model import RingState
 
 

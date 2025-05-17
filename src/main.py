@@ -3,9 +3,9 @@ import logging
 
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
+from lfo.lfo_engine import LfoEngine
+from renderer.led_renderer import LedRenderer
 from src.controller.controller import ArcController
-from src.controller.led_renderer import LedRenderer
-from src.controller.lfo_engine import LfoEngine
 from src.model.model import Model
 from src.modes.disconnect_mode import DisconnectMode
 from src.modes.layer_select_mode import LayerSelectMode

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import monome
 
-from src.controller.lfo_engine import LfoEngine
+from lfo.lfo_engine import LfoEngine
 from src.modes.base_mode import BaseMode
 
 

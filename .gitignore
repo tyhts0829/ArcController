@@ -2,3 +2,5 @@
 **/*__pycache__
 logs
 old
+.pytest_cache
+.vscode
