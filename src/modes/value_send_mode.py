@@ -1,8 +1,9 @@
 import monome
-from controller.led_renderer import LedRenderer
-from enums.enums import LfoStyle
-from mode.base_mode import BaseMode
-from model.model import Model
+
+from src.controller.led_renderer import LedRenderer
+from src.enums.enums import LfoStyle
+from src.model.model import Model
+from src.modes.base_mode import BaseMode
 
 
 class ValueSendMode(BaseMode):

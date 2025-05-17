@@ -11,9 +11,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Iterator, List
 
-from enums.enums import LedStyle, LfoStyle, ValueStyle
-from util.hardware_spec import ARC_SPEC
-from util.util import clamp, fmt
+from src.enums.enums import LedStyle, LfoStyle, ValueStyle
+from src.utils.hardware_spec import ARC_SPEC
+from src.utils.util import clamp, fmt
 
 LOGGER = logging.getLogger(__name__)
 

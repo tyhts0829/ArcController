@@ -11,16 +11,16 @@ import logging
 from enum import Enum
 from typing import Optional
 
+import monome
 import transitions
 from transitions import EventData, Machine, State
 
-import monome
-from mode.disconnect_mode import DisconnectMode
-from mode.layer_select_mode import LayerSelectMode
-from mode.preset_select_mode import PresetSelectMode
-from mode.ready_mode import ReadyMode
-from mode.value_send_mode import ValueSendMode
-from model.model import Model
+from src.model.model import Model
+from src.modes.disconnect_mode import DisconnectMode
+from src.modes.layer_select_mode import LayerSelectMode
+from src.modes.preset_select_mode import PresetSelectMode
+from src.modes.ready_mode import ReadyMode
+from src.modes.value_send_mode import ValueSendMode
 
 LOGGER = logging.getLogger(__name__)
 

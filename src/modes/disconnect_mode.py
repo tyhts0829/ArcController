@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import monome
-from controller.led_renderer import LedRenderer
-from controller.lfo_engine import LfoEngine
-from mode.base_mode import BaseMode
+
+from src.controller.lfo_engine import LfoEngine
+from src.modes.base_mode import BaseMode
 
 
 class DisconnectMode(BaseMode):

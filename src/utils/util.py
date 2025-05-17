@@ -11,9 +11,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
-
 import monome
+from omegaconf import DictConfig, ListConfig, OmegaConf
 
 LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ def clamp(x: float | int, lo: float | int, hi: float | int) -> int | float:
     return max(lo, min(hi, x))
 
 
-def config_loader(cfg_path: Path = Path("config/config.yaml")) -> DictConfig | ListConfig:
+def config_loader(cfg_path: Path = Path("src/config/config.yaml")) -> DictConfig | ListConfig:
     """YAML 設定ファイルを読み込み `OmegaConf` オブジェクトを返す。
 
     Args:

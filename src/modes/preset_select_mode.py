@@ -4,9 +4,10 @@ import math
 from collections import defaultdict
 
 import monome
-from controller.led_renderer import LedRenderer
-from mode.base_mode import BaseMode
-from model.model import Model
+
+from src.controller.led_renderer import LedRenderer
+from src.model.model import Model
+from src.modes.base_mode import BaseMode
 
 
 class PresetSelectMode(BaseMode):

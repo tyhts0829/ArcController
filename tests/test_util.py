@@ -1,6 +1,6 @@
 import pytest
 
-from util.util import clamp
+from src.utils.util import clamp
 
 
 @pytest.mark.parametrize(

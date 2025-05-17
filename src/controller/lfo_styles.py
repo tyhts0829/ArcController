@@ -6,8 +6,8 @@ from functools import cached_property
 
 import noise
 
-from enums.enums import LfoStyle
-from model.model import RingState
+from src.enums.enums import LfoStyle
+from src.model.model import RingState
 
 LOGGER = logging.getLogger(__name__)
 

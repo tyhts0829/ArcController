@@ -3,16 +3,16 @@ import logging
 
 from omegaconf import OmegaConf
 
-from controller.controller import ArcController
-from controller.led_renderer import LedRenderer
-from controller.lfo_engine import LfoEngine
-from mode.disconnect_mode import DisconnectMode
-from mode.layer_select_mode import LayerSelectMode
-from mode.preset_select_mode import PresetSelectMode
-from mode.ready_mode import ReadyMode
-from mode.value_send_mode import ValueSendMode
-from model.model import Model
-from util.util import config_loader, setup_logging, setup_serialosc
+from src.controller.controller import ArcController
+from src.controller.led_renderer import LedRenderer
+from src.controller.lfo_engine import LfoEngine
+from src.model.model import Model
+from src.modes.disconnect_mode import DisconnectMode
+from src.modes.layer_select_mode import LayerSelectMode
+from src.modes.preset_select_mode import PresetSelectMode
+from src.modes.ready_mode import ReadyMode
+from src.modes.value_send_mode import ValueSendMode
+from src.utils.util import config_loader, setup_logging, setup_serialosc
 
 LOGGER = logging.getLogger(__name__)
 

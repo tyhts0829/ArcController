@@ -9,10 +9,11 @@ ReadyMode は Arc デバイスが *ready*（接続完了）になった直後に
 from __future__ import annotations
 
 import monome
-from controller.led_renderer import LedRenderer
-from controller.lfo_engine import LfoEngine
-from mode.base_mode import BaseMode
-from model.model import Model
+
+from src.controller.led_renderer import LedRenderer
+from src.controller.lfo_engine import LfoEngine
+from src.model.model import Model
+from src.modes.base_mode import BaseMode
 
 
 class ReadyMode(BaseMode):
