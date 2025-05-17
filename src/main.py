@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from src.controller.controller import ArcController
 from src.controller.led_renderer import LedRenderer
@@ -17,7 +17,7 @@ from src.utils.util import config_loader, setup_logging, setup_serialosc
 LOGGER = logging.getLogger(__name__)
 
 
-async def main(cfg) -> None:
+async def main(cfg: DictConfig | ListConfig) -> None:
     """アプリケーションのメインエントリーポイント。
 
     Args:
