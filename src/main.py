@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig
 
 from lfo.lfo_engine import LfoEngine
 from renderer.led_renderer import LedRenderer
