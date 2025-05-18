@@ -24,6 +24,8 @@ class LfoEngine:
         model (Model): LED 描画対象となるデータモデル。
         led_renderer (LedRenderer): LED を描画するクラス。
         fps (int): 1 秒あたりの更新フレーム数。
+
+    `stop()` は `async` メソッドとなり、呼び出し側が `await` することで完全停止を保証できます。
     """
 
     def __init__(self, model: Model, led_renderer: LedRenderer, fps: int):
@@ -55,15 +57,27 @@ class LfoEngine:
             self._running = True
             self._task = asyncio.create_task(self._loop())
 
-    def stop(self) -> None:
-        """LFO タスクをキャンセルして停止する。
+    async def stop(self) -> None:
+        """LFO タスクをキャンセルして完全に停止する。
 
-        タスク未実行の場合は何もしない。
+        Notes:
+            * `CancelledError` を握りつぶして安全に終了を待つ。
+            * 呼び出し側は `await engine.stop()` で完全停止を保証できる。
         """
         LOGGER.info("LfoEngine: stopping")
         self._running = False
-        if self._task is not None:
-            self._task.cancel()
+
+        if self._task is None:  # そもそも起動していない
+            return
+
+        self._task.cancel()
+        try:
+            await self._task  # CancelledError を待って完全終了
+        except asyncio.CancelledError:
+            # _loop 内で CancelledError が発生した場合はここへ来る
+            pass
+        finally:
+            self._task = None
 
     # ---------------------------------------------------------------------
     # 内部: メインループ

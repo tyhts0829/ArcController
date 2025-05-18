@@ -191,15 +191,14 @@ class ArcController(monome.ArcApp):
     # state callbacks
     # ---------------------------------
     def _on_enter_layer_select(self, event: EventData) -> None:  # noqa: D401
-        self.layer_select_mode.on_arc_key(0, True)
+        self.layer_select_mode.on_enter()
 
     def _on_exit_layer_select(self, event: EventData) -> None:  # noqa: D401
-        self.layer_select_mode.on_arc_key(0, False)
+        self.layer_select_mode.on_exit()
 
     def _on_enter_preset_select(self, event: EventData) -> None:  # noqa: D401
-        self.preset_select_mode.cycle_layer(-1)
-        self.preset_select_mode.set_render_block(False)
+        self.preset_select_mode.on_enter()
 
     def _on_exit_preset_select(self, event: EventData) -> None:  # noqa: D401
         """PresetSelectMode を抜けるたびに累積 Δ をリセットする。"""
-        self.preset_select_mode.reset_acc()
+        self.preset_select_mode.on_exit()

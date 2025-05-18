@@ -53,7 +53,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         pass
     finally:
         LOGGER.info("Shutting down: stopping LFO and turning off LEDs")
-        lfo_engine.stop()
+        await lfo_engine.stop()
         led_renderer.all_off()
 
 

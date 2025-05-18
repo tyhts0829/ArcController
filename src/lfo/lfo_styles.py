@@ -131,8 +131,6 @@ LFO_STYLE_MAP = {
     LfoStyle.TRIANGLE: TriangleLfoStyle,
     LfoStyle.PERLIN: PerlinLfoStyle,
 }
-# 逆引き: クラス → LfoStyle
-LFO_CLASS_TO_STYLE_ENUM: dict[type[BaseLfoStyle], LfoStyle] = {cls: cls.style() for cls in LFO_STYLE_MAP.values()}
 
 
 def get_lfo_instance(style: LfoStyle) -> BaseLfoStyle:

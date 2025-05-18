@@ -27,6 +27,8 @@ class PresetSelectMode(BaseMode):
         pass
 
     def on_arc_delta(self, ring_idx: int, delta: int) -> None:
+        self.led_renderer.set_render_block(blocked=False)
+        self.led_renderer.render_value(ring_idx, self.model[ring_idx])
         acc = self._acc_deltas[ring_idx] + delta  # 累積値を更新
         steps = math.trunc(acc / self.threshold)  # ステップ数を計算
         self._acc_deltas[ring_idx] = acc - steps * self.threshold  # 残余を保持
@@ -34,17 +36,20 @@ class PresetSelectMode(BaseMode):
             return
         ring_state = self.model[ring_idx]
         ring_state.cycle_preset(steps)
-        self.led_renderer.render_layer(self.model.active_layer, force=True)
+        self.led_renderer.render_layer(self.model.active_layer, ignore_cache=True)
 
-    def reset_acc(self) -> None:
+    def _reset_acc(self) -> None:
         """すべてのリングの累積 Δ をリセットする。"""
         self._acc_deltas.clear()
 
-    def set_render_block(self, block: bool) -> None:
-        self.led_renderer.set_render_block(block)
-
-    def cycle_layer(self, steps: int = 1) -> None:
-        """レイヤーを指定されたステップ数だけサイクルする。"""
-        self.model.cycle_layer(steps)
+    def on_enter(self) -> None:
+        """レイヤー選択モードに入る際の処理"""
+        self.led_renderer.set_render_block(blocked=True)
+        self.model.cycle_layer(-1)
         self.led_renderer.highlight(self.model.active_layer_idx)
-        self.led_renderer.set_render_block(True)  # lfo_engine.py による描画をブロッ
+
+    def on_exit(self) -> None:
+        """レイヤー選択モードから出る際の処理"""
+        self._reset_acc()
+        self.led_renderer.set_render_block(blocked=False)
+        self.led_renderer.render_layer(self.model.active_layer, ignore_cache=True)

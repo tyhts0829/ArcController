@@ -375,9 +375,6 @@ LED_STYLE_MAP: dict[LedStyle, Type[BaseLedStyle]] = {
     LedStyle.PERLIN: PerlinLedStyle,
 }
 
-# 逆引き: クラス → LedStyle
-LED_CLASS_TO_STYLE_ENUM: dict[type[BaseLedStyle], LedStyle] = {cls: cls.style() for cls in LED_STYLE_MAP.values()}
-
 
 def get_led_instance(style: LedStyle, max_brightness: int = 15) -> BaseLedStyle:
     cls = LED_STYLE_MAP.get(style)

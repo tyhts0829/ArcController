@@ -18,18 +18,24 @@ from src.utils.util import clamp, fmt
 LOGGER = logging.getLogger(__name__)
 
 
-NUM_LAYERS = 4  # TODO : config から取得するようにする
+# モデルレイヤー数（Model.from_config で cfg.model.num_layers に動的に上書きされる）
+num_layers = 4
 
 
 @dataclass
 class Model:
     """アプリ全体の状態を管理するルートクラス。"""
 
-    layers: List[LayerState] = field(default_factory=lambda: [LayerState(name=f"L{i}") for i in range(NUM_LAYERS)])
+    layers: List[LayerState] = field(default_factory=lambda: [LayerState(name=f"L{i}") for i in range(num_layers)])
     active_layer_idx: int = 0  # 現在の編集対象レイヤー
 
     @classmethod
     def from_config(cls, cfg) -> "Model":
+        global num_layers
+        try:
+            num_layers = cfg.model.num_layers
+        except AttributeError:
+            LOGGER.warning("cfg.model.num_layers not found – fallback to %d layers", num_layers)
         model = cls()
         default_preset = cfg.presets[0]
         for layer in model.layers:

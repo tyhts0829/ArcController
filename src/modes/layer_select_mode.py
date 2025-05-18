@@ -20,16 +20,36 @@ class LayerSelectMode(BaseMode):
 
     def on_arc_key(self, x: int, pressed: bool) -> None:
         if pressed:
-            self.cycle_layer()
+            self._cycle_layer_and_highlight()
         else:
-            self.led_renderer.set_render_block(False)
-            self.led_renderer.render_layer(self.model.active_layer, force=True)
-
-    def cycle_layer(self, steps: int = 1) -> None:
-        """レイヤーを指定されたステップ数だけサイクルする。"""
-        self.model.cycle_layer(steps)
-        self.led_renderer.highlight(self.model.active_layer_idx)
-        self.led_renderer.set_render_block(True)  # lfo_engine.py による描画をブロックする
+            self._refresh_active_layer_led()
 
     def on_arc_delta(self, ring_idx: int, delta: int) -> None:
         pass
+
+    def on_enter(self) -> None:
+        """
+        レイヤー選択モードに入る際の処理
+        レイヤー選択モードに入る際にレイヤーをサイクルする
+        """
+        self.on_arc_key(0, True)
+
+    def on_exit(self) -> None:
+        """
+        レイヤー選択モードから出る際の処理
+        アクティブレイヤーの LED を表示する
+        """
+        self._refresh_active_layer_led()
+
+    def _cycle_layer_and_highlight(self) -> None:
+        """レイヤーを指定されたステップ数だけサイクルし、LED をハイライトする。"""
+        self.led_renderer.set_render_block(
+            blocked=True
+        )  # lfo_engine.py による描画をブロックし、highlightが持続するようにする
+        self.model.cycle_layer(1)
+        self.led_renderer.highlight(self.model.active_layer_idx)
+
+    def _refresh_active_layer_led(self) -> None:
+        """レイヤー選択モードの状態を更新する。"""
+        self.led_renderer.set_render_block(blocked=False)
+        self.led_renderer.render_layer(self.model.active_layer, ignore_cache=True)

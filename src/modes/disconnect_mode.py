@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import monome
 
 from lfo.lfo_engine import LfoEngine
@@ -16,7 +18,9 @@ class DisconnectMode(BaseMode):
         pass
 
     def on_arc_disconnect(self) -> None:
-        self._lfo_engine.stop()
+        """Arc デバイス切断時に LFO エンジンを非同期停止させる。"""
+        # stop() は async になったためタスクとして実行
+        asyncio.create_task(self._lfo_engine.stop())
 
     def on_arc_delta(self, ring_idx: int, delta: int) -> None:
         pass

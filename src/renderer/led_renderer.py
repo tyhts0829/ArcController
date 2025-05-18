@@ -86,12 +86,16 @@ class LedRenderer:
         self.all_off()
         self.arc.ring_all(ring_idx, level)
 
-    def set_render_block(self, blocked: bool = True) -> None:
+    def set_render_block(self, *, blocked: bool = True) -> None:
         """LED 描画をブロック／解除する。
 
         Args:
             blocked (bool, optional): True で描画をブロック、False で解除。デフォルトは True。
         """
+        # 状態が変化する場合のみログ出力
+        if self._render_blocked == blocked:
+            return
+
         self._render_blocked = blocked
         if blocked:
             LOGGER.info("LED rendering blocked")
@@ -99,7 +103,7 @@ class LedRenderer:
             LOGGER.info("LED rendering unblocked")
 
     @_require_arc_set
-    def render_layer(self, layer: LayerState, *, force: bool = False) -> None:
+    def render_layer(self, layer: LayerState, *, ignore_cache: bool = False) -> None:
         """LayerState 全体を LED へ描画する。
 
         Args:
@@ -112,10 +116,10 @@ class LedRenderer:
             return
         self.all_off()
         for ring_idx, ring_state in enumerate(layer):
-            self.render_value(ring_idx, ring_state, force=force)
+            self.render_value(ring_idx, ring_state, ignore_cache=ignore_cache)
 
     @_require_arc_set
-    def render_value(self, ring_idx: int, ring_state: RingState, *, force: bool = False) -> None:
+    def render_value(self, ring_idx: int, ring_state: RingState, *, ignore_cache: bool = False) -> None:
         """RingState の値を LED へ描画する。
 
         Args:
@@ -132,7 +136,7 @@ class LedRenderer:
 
         # 前フレームとの差分チェック ― 同一ならスキップ
         prev = self._last_levels.get(ring_idx)
-        if (not force) and prev is not None and prev == levels:
+        if (not ignore_cache) and prev is not None and prev == levels:
             # LOGGER.debug(f"levels unchanged, skip ring {ring_idx}")
             return
 
