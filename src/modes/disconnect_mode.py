@@ -17,7 +17,7 @@ import asyncio
 
 import monome
 
-from lfo.lfo_engine import LfoEngine
+from services.lfo.lfo_engine import LfoEngine
 from src.modes.base_mode import BaseMode
 
 

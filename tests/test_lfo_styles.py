@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from src.lfo.lfo_styles import (
+from services.lfo.lfo_styles import (
     SawLfoStyle,
     SineLfoStyle,
     SquareLfoStyle,

@@ -8,8 +8,8 @@ asyncio タスクとして動作し、各リングの LFO を計算して LED �
 import asyncio
 import logging
 
-from lfo.lfo_styles import LFO_STYLE_MAP, BaseLfoStyle, get_lfo_instance
-from renderer.led_renderer import LedRenderer
+from services.lfo.lfo_styles import LFO_STYLE_MAP, BaseLfoStyle, get_lfo_instance
+from services.renderer.led_renderer import LedRenderer
 from src.enums.enums import LfoStyle
 from src.model.model import Model
 

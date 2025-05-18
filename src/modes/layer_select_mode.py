@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import monome
 
-from renderer.led_renderer import LedRenderer
+from services.renderer.led_renderer import LedRenderer
 from src.model.model import Model
 from src.modes.base_mode import BaseMode
 

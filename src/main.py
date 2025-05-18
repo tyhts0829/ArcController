@@ -3,8 +3,8 @@ import logging
 
 from omegaconf import DictConfig, ListConfig
 
-from lfo.lfo_engine import LfoEngine
-from renderer.led_renderer import LedRenderer
+from services.lfo.lfo_engine import LfoEngine
+from services.renderer.led_renderer import LedRenderer
 from src.controller.controller import ArcController
 from src.model.model import Model
 from src.modes.disconnect_mode import DisconnectMode
