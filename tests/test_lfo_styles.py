@@ -4,14 +4,14 @@ import math
 
 import pytest
 
-from services.lfo.lfo_styles import (
+from src.model.model import RingState
+from src.services.lfo.lfo_styles import (
     SawLfoStyle,
     SineLfoStyle,
     SquareLfoStyle,
     StaticLfoStyle,
     TriangleLfoStyle,
 )
-from src.model.model import RingState
 
 
 def test_static_lfo_returns_current_value():
