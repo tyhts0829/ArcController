@@ -4,3 +4,4 @@ logs
 old
 .pytest_cache
 .vscode
+.hypothesis

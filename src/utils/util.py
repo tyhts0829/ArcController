@@ -40,6 +40,9 @@ def clamp(x: float | int, lo: float | int, hi: float | int) -> int | float:
     Returns:
         float: クランプされた値。
     """
+    # lo > hi の場合は ValueError を送出
+    if lo > hi:
+        raise ValueError(f"Invalid range: {lo} > {hi}")
     return max(lo, min(hi, x))
 
 

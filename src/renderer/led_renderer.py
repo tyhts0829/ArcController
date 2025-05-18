@@ -24,8 +24,8 @@ def _require_arc_set(method):
 
 import monome
 
-from renderer.led_styles import LED_STYLE_MAP, BaseLedStyle, get_led_instance
 from src.model.model import LayerState, RingState
+from src.renderer.led_styles import LED_STYLE_MAP, BaseLedStyle, get_led_instance
 from src.utils.hardware_spec import ARC_SPEC, ArcSpec
 
 LOGGER = logging.getLogger(__name__)

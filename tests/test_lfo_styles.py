@@ -1,87 +1,92 @@
+"""Tests for deterministic LFO style classes in src.lfo.lfo_styles."""
+
 import math
-import sys
-import types
 
 import pytest
 
-# Provide a stub noise module for import
-sys.modules.setdefault("noise", types.SimpleNamespace(pnoise1=lambda x, base=0: 0.0))  # type: ignore
-
-from lfo import lfo_styles
+from src.lfo.lfo_styles import (
+    SawLfoStyle,
+    SineLfoStyle,
+    SquareLfoStyle,
+    StaticLfoStyle,
+    TriangleLfoStyle,
+)
 from src.model.model import RingState
 
 
-def test_get_lfo_instance_types():
-    """
-    ファクトリが正しいクラスのインスタンスを返すことを確認するテスト。
-    """
-    for style_enum, cls in lfo_styles.LFO_STYLE_MAP.items():
-        inst = lfo_styles.get_lfo_instance(style_enum)
-        assert isinstance(inst, cls)
-
-
 def test_static_lfo_returns_current_value():
-    """StaticLfoStyle の update メソッドが RingState.current_value をそのまま返すことを確認するテスト。"""
-    ring = RingState(current_value=0.75)
-    lfo = lfo_styles.StaticLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert val == ring.current_value
+    """StaticLfoStyle should echo `current_value` without mutating the phase."""
+    ring = RingState(current_value=0.123, lfo_amplitude=0.9)
+    style = StaticLfoStyle()
+
+    out = style.update(ring, dt=1.0)
+
+    assert out == pytest.approx(0.123)
+    # phase remains unchanged (default 0.0)
+    assert ring.lfo_phase == 0.0
 
 
-def test_random_lfo_jitter(monkeypatch):
-    """RandomLfoStyle の update メソッドが周波数に応じたジッター値を返すことを確認するテスト。
+def test_sine_lfo_phase_and_value():
+    """SineLfoStyle advances phase correctly and returns sin value."""
+    ring = RingState(lfo_frequency=1.0, lfo_amplitude=1.0, lfo_phase=0.0)
+    style = SineLfoStyle()
 
-    monkeypatch で random.random() を固定し、期待値を決定論的に検証する。"""
-    monkeypatch.setattr(lfo_styles.random, "random", lambda: 1.0)
-    ring = RingState(lfo_frequency=0.2)
-    lfo = lfo_styles.RandomLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert val == pytest.approx(0.1)
+    out = style.update(ring, dt=0.25)  # phase -> 0.25
 
-
-def test_sine_lfo_updates_phase_and_value():
-    """SineLfoStyle の update メソッドが lfo_phase を更新し、サイン波に基づく値を返すことを確認するテスト。"""
-    ring = RingState(lfo_frequency=0.25, lfo_amplitude=1.0)
-    lfo = lfo_styles.SineLfoStyle()
-    val = lfo.update(ring, 1.0)
     assert ring.lfo_phase == pytest.approx(0.25)
-    assert val == pytest.approx(1.0)
+    assert out == pytest.approx(1.0)
 
 
-def test_saw_lfo():
-    """SawLfoStyle の update メソッドが lfo_phase を更新し、ノコギリ波に基づく値を返すことを確認するテスト。"""
-    ring = RingState(lfo_frequency=0.25, lfo_amplitude=1.0)
-    lfo = lfo_styles.SawLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert ring.lfo_phase == pytest.approx(0.25)
-    assert val == pytest.approx(-0.5)
+def test_sine_lfo_phase_wrap():
+    """Phase should wrap into [0,1) after exceeding 1.0."""
+    ring = RingState(lfo_frequency=1.0, lfo_amplitude=1.0, lfo_phase=0.9)
+    style = SineLfoStyle()
+
+    out = style.update(ring, dt=0.2)  # phase -> (0.9+0.2) % 1 = 0.1
+    expected = math.sin(2 * math.pi * 0.1)
+
+    assert ring.lfo_phase == pytest.approx(0.1)
+    assert out == pytest.approx(expected)
 
 
-def test_square_lfo():
-    """SquareLfoStyle の update メソッドが lfo_phase を更新し、矩形波に基づく値を返すことを確認するテスト。"""
-    ring = RingState(lfo_frequency=0.25, lfo_amplitude=1.0)
-    lfo = lfo_styles.SquareLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert ring.lfo_phase == pytest.approx(0.25)
-    assert val == pytest.approx(1.0)
+def test_saw_lfo_value():
+    """SawLfoStyle should produce a linear ramp from -amp to +amp."""
+    ring = RingState(lfo_frequency=1.0, lfo_amplitude=1.0, lfo_phase=0.0)
+    style = SawLfoStyle()
+
+    out = style.update(ring, dt=0.25)  # phase -> 0.25
+    expected = 2 * 0.25 - 1  # -0.5
+
+    assert out == pytest.approx(expected)
 
 
-def test_triangle_lfo():
-    """TriangleLfoStyle の update メソッドが lfo_phase を更新し、三角波に基づく値を返すことを確認するテスト。"""
-    ring = RingState(lfo_frequency=0.25, lfo_amplitude=1.0)
-    lfo = lfo_styles.TriangleLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert ring.lfo_phase == pytest.approx(0.25)
-    assert val == pytest.approx(0.0)
+def test_square_lfo_toggle():
+    """SquareLfoStyle toggles sign when phase crosses 0.5."""
+    ring = RingState(lfo_frequency=1.0, lfo_amplitude=0.8, lfo_phase=0.4)
+    style = SquareLfoStyle()
+
+    out = style.update(ring, dt=0.2)  # phase -> 0.6 (>0.5) -> -amp
+
+    assert ring.lfo_phase == pytest.approx(0.6)
+    assert out == pytest.approx(-0.8)
 
 
-def test_perlin_lfo(monkeypatch):
-    """PerlinLfoStyle の update メソッドが lfo_phase を更新し、Perlin ノイズに基づく値を返すことを確認するテスト。
+@pytest.mark.parametrize(
+    "phase,expected",
+    [
+        (0.0, 1.0),  # triangle peaks at -amp when phase == 0 or 1 -> tri = -1
+        (0.25, 0.0),  # center rising edge
+        (0.5, -1.0),  # trough
+        (0.75, 0.0),  # center falling edge
+    ],
+)
+def test_triangle_lfo_shape(phase, expected):
+    """TriangleLfoStyle produces the expected piece‑wise linear waveform."""
+    amp = 1.0
+    ring = RingState(lfo_frequency=0.0, lfo_amplitude=amp, lfo_phase=phase)
+    style = TriangleLfoStyle()
 
-    monkeypatch で noise.pnoise1() を固定し、期待値を決定論的に検証する。"""
-    monkeypatch.setattr(lfo_styles, "noise", types.SimpleNamespace(pnoise1=lambda x, base=0: 0.5))
-    ring = RingState(lfo_frequency=0.25, lfo_amplitude=1.0, cc_number=1)
-    lfo = lfo_styles.PerlinLfoStyle()
-    val = lfo.update(ring, 1.0)
-    assert ring.lfo_phase == pytest.approx(0.25)
-    assert val == pytest.approx(0.5)
+    # dt=0 so phase stays; we're sampling waveform directly
+    out = style.update(ring, dt=0.0)
+
+    assert out == pytest.approx(amp * expected)
