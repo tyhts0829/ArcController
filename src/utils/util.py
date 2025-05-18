@@ -9,7 +9,7 @@ Arc アプリ全体で共有されるユーティリティ関数群。
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar, overload
 
 import monome
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -29,18 +29,29 @@ def fmt(v: Any) -> str:
     return f"{v:.3f}" if isinstance(v, float) else str(v)
 
 
-def clamp(x: float | int, lo: float | int, hi: float | int) -> int | float:
+_T = TypeVar("_T", int, float)
+
+
+@overload
+def clamp(x: int, lo: int, hi: int) -> int: ...
+@overload
+def clamp(x: float, lo: float, hi: float) -> float: ...
+
+
+def clamp(x: _T, lo: _T, hi: _T) -> _T:
     """値を指定範囲へクランプする。
 
     Args:
-        x (float): 入力値。
-        lo (float): 下限。
-        hi (float): 上限。
+        x (_T): 入力値。
+        lo (_T): 下限。
+        hi (_T): 上限。
 
     Returns:
-        float: クランプされた値。
+        _T: クランプされた値。
+
+    Raises:
+        ValueError: ``lo`` が ``hi`` より大きい場合。
     """
-    # lo > hi の場合は ValueError を送出
     if lo > hi:
         raise ValueError(f"Invalid range: {lo} > {hi}")
     return max(lo, min(hi, x))

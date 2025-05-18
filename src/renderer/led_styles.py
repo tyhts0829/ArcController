@@ -147,7 +147,6 @@ class DotStyle(BaseLedStyle):
         if upper_brightness > f_levels[upper_idx]:
             f_levels[upper_idx] = upper_brightness
             levels[upper_idx] = clamp(int(round(upper_brightness)), 0, self.max_brightness)
-
         return levels
 
 

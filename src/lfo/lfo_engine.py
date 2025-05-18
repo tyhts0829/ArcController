@@ -83,21 +83,28 @@ class LfoEngine:
     # 内部: メインループ
     # ---------------------------------------------------------------------
     async def _loop(self) -> None:
-        """内部コルーチン: FPS に従って各リングの LFO を更新し、LED を描画し続ける。"""
+        """内部コルーチン: FPS に従って各リングの LFO を更新し、LED を描画し続ける。
+
+        フレーム処理時間の揺らぎによる累積ドリフトを防ぐため、次フレーム予定時刻
+        ``target`` を保持し、ループの最後に
+        ``await asyncio.sleep(max(0, target - loop.time()))`` で待機する。
+        更新が遅延して ``sleep`` 時刻を過ぎていた場合は ``target`` を現在時刻へ
+        リセットして追いつく。
+        """
         frame_interval = 1.0 / self.fps
         loop = asyncio.get_running_loop()
         prev = loop.time()
+        target = prev  # 次フレーム予定時刻
 
         try:
             while self._running:
-                frame_start = loop.time()
-                dt = frame_start - prev
-                prev = frame_start
+                now = loop.time()
+                dt = now - prev
+                prev = now
 
                 # ----- LFO 更新 & LED 描画 --------------------------------
                 for layer_idx, layer in enumerate(self.model):
                     for ring_idx, ring_state in enumerate(layer):
-                        # LFO が STATIC の場合はスキップ
                         if ring_state.lfo_style == LfoStyle.STATIC:
                             continue
 
@@ -123,11 +130,16 @@ class LfoEngine:
                         if layer_idx == self.model.active_layer_idx:
                             self.led_renderer.render_value(ring_idx, ring_state)
 
-                # ----- FPS 制御 ------------------------------------------
-                elapsed = loop.time() - frame_start
-                sleep_for = frame_interval - elapsed
-                # 0 以下でも 0 秒 sleep して制御権を戻す
-                await asyncio.sleep(max(0, sleep_for))
+                # ----- FPS 制御: ドリフト補正あり -------------------------
+                target += frame_interval
+                sleep_for = target - loop.time()
+
+                if sleep_for < -frame_interval:
+                    # フレーム処理が大幅に遅延している場合は target をリセット
+                    target = loop.time()
+                    sleep_for = 0.0
+
+                await asyncio.sleep(max(0.0, sleep_for))
         except asyncio.CancelledError:
             # stop() が呼ばれたときにここへ来る
             pass
