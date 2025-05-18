@@ -106,17 +106,37 @@ class LedRenderer:
     def render_layer(self, layer: LayerState, *, ignore_cache: bool = False) -> None:
         """LayerState 全体を LED へ描画する。
 
+        すべてのリングに対して LED レベルを ``ArcBuffer`` へ書き込み終えてから
+        1 回だけ ``ArcBuffer.render()`` を呼び出すことで、フレーム途中で
+        ``all_off()`` が勝って暗転するレースを防ぎアトミックに更新する。
+
         Args:
             layer (LayerState): 各リングの RingState を格納したシーケンス。
-            force (bool, optional): True の場合、前フレームと変化がなくても強制描画する。デフォルトは False。
+            ignore_cache (bool, optional): True の場合、前フレームとの差分を無視して
+                強制的に全リングを再描画する。デフォルトは False。
         """
-        LOGGER.debug("render_layer called")
         assert self.arc is not None and self.buffer is not None, "mypy: _require_arc_set guarantees attributes"
         if self._render_blocked:
             return
-        self.all_off()
+
+        updated = False  # 変更があったリングがあれば最後に 1 回だけ render する
+
         for ring_idx, ring_state in enumerate(layer):
-            self.render_value(ring_idx, ring_state, ignore_cache=ignore_cache)
+            levels = self._build_levels(ring_idx, ring_state)
+
+            prev = self._last_levels.get(ring_idx)
+            if (not ignore_cache) and prev is not None and prev == levels:
+                # 差分が無ければバッファ書き込みも render も不要
+                continue
+
+            # 差分があったリングのみバッファへマッピング
+            self.buffer.ring_map(ring_idx, levels)
+            self._last_levels[ring_idx] = levels.copy()
+            updated = True
+
+        # いずれかのリングが更新された場合のみ 1 度だけフラッシュ
+        if updated:
+            self.buffer.render(self.arc)
 
     @_require_arc_set
     def render_value(self, ring_idx: int, ring_state: RingState, *, ignore_cache: bool = False) -> None:

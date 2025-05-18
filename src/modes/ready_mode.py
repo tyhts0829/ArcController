@@ -17,9 +17,20 @@ from src.modes.base_mode import BaseMode
 
 
 class ReadyMode(BaseMode):
-    """Arc 接続直後の初期化処理を担当するモード。"""
+    """Arc 接続直後の初期化処理を担当するモード。
+
+    * LedRenderer に Arc インスタンスを紐付け、全 LED を消灯
+    * LfoEngine を起動してアニメーションを開始
+    * 初回フレームを強制描画して UI を即時更新
+
+    Args:
+        model (Model): アプリケーション状態モデル。
+        led_renderer (LedRenderer): LED 描画を担当するレンダラ。
+        lfo_engine (LfoEngine): LED アニメーションを生成するエンジン。
+    """
 
     def __init__(self, model: Model, led_renderer: LedRenderer, lfo_engine: LfoEngine) -> None:
+        """依存オブジェクトを保持するのみで副作用は発生させない。"""
         self._model = model
         self._led_renderer = led_renderer
         self._lfo_engine = lfo_engine
@@ -45,10 +56,13 @@ class ReadyMode(BaseMode):
                 self._led_renderer.render_value(ring_idx, ring_state)
 
     def on_arc_disconnect(self) -> None:
+        """ReadyMode では切断イベントを無視する。"""
         pass
 
     def on_arc_delta(self, ring_idx: int, delta: int) -> None:
+        """ReadyMode ではリング回転イベントを無視する。"""
         pass
 
     def on_arc_key(self, x: int, pressed: bool) -> None:
+        """ReadyMode ではキー入力を無視する。"""
         pass
