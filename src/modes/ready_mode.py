@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import monome
 
-from services.lfo.lfo_engine import LfoEngine
+from services.lfo.lfo_engine import LFOEngine
 from services.renderer.led_renderer import LedRenderer
 from src.model.model import Model
 from src.modes.base_mode import BaseMode
@@ -29,7 +29,7 @@ class ReadyMode(BaseMode):
         lfo_engine (LfoEngine): LED アニメーションを生成するエンジン。
     """
 
-    def __init__(self, model: Model, led_renderer: LedRenderer, lfo_engine: LfoEngine) -> None:
+    def __init__(self, model: Model, led_renderer: LedRenderer, lfo_engine: LFOEngine) -> None:
         """依存オブジェクトを保持するのみで副作用は発生させない。"""
         self._model = model
         self._led_renderer = led_renderer

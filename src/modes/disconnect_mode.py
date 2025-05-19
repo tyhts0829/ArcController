@@ -17,7 +17,7 @@ import asyncio
 
 import monome
 
-from services.lfo.lfo_engine import LfoEngine
+from services.lfo.lfo_engine import LFOEngine
 from src.modes.base_mode import BaseMode
 
 
@@ -29,7 +29,7 @@ class DisconnectMode(BaseMode):
             デバイス切断時に安全に停止させる。
     """
 
-    def __init__(self, lfo_engine: LfoEngine) -> None:
+    def __init__(self, lfo_engine: LFOEngine) -> None:
         """依存オブジェクトを保持するだけで特別な初期化は行わない。"""
         self._lfo_engine = lfo_engine
 

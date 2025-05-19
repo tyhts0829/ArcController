@@ -16,7 +16,7 @@ from src.model.model import Model
 LOGGER = logging.getLogger(__name__)
 
 
-class LfoEngine:
+class LFOEngine:
     """
     asyncio タスクで動く LFO エンジン。
 

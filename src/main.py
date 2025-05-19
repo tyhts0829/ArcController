@@ -3,7 +3,7 @@ import logging
 
 from omegaconf import DictConfig, ListConfig
 
-from services.lfo.lfo_engine import LfoEngine
+from services.lfo.lfo_engine import LFOEngine
 from services.renderer.led_renderer import LedRenderer
 from src.controller.controller import ArcController
 from src.model.model import Model
@@ -26,7 +26,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     loop = asyncio.get_running_loop()
     model = Model.from_config(cfg)
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
-    lfo_engine = LfoEngine(model=model, led_renderer=led_renderer, fps=cfg.services.lfo_engine.fps)
+    lfo_engine = LFOEngine(model=model, led_renderer=led_renderer, fps=cfg.services.lfo_engine.fps)
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
     value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer)
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)
