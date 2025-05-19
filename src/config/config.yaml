@@ -6,7 +6,7 @@ globals:
   logging:
     level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-component:
+services:
   lfo_engine:
     fps: 60
   led_renderer:
@@ -14,7 +14,7 @@ component:
 
 mode:
   preset_select_mode:
-    threshold: 200
+    threshold: 100
 
 # ------------------------------------------------------------
 # モデル設定

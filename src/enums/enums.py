@@ -29,8 +29,3 @@ class LfoStyle(enum.Enum):
     SQUARE = "square"
     TRIANGLE = "triangle"
     PERLIN = "perlin"
-
-
-class Mode(enum.Enum):
-    OPERATE = "operate"
-    PRESET = "preset"

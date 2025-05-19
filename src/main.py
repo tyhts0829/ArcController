@@ -25,8 +25,8 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     """
     loop = asyncio.get_running_loop()
     model = Model.from_config(cfg)
-    led_renderer = LedRenderer(max_brightness=cfg.component.led_renderer.max_brightness)
-    lfo_engine = LfoEngine(model=model, led_renderer=led_renderer, fps=cfg.component.lfo_engine.fps)
+    led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
+    lfo_engine = LfoEngine(model=model, led_renderer=led_renderer, fps=cfg.services.lfo_engine.fps)
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
     value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer)
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)

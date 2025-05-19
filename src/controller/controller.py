@@ -169,7 +169,7 @@ class ArcController(monome.ArcApp):
         """
         self._cancel_long_press_timer()
         loop = asyncio.get_running_loop()
-        self._long_press_timer = loop.call_later(0.5, self._on_long_press)
+        self._long_press_timer = loop.call_later(0.2, self._on_long_press)
 
     def _cancel_long_press_timer(self) -> None:
         """
