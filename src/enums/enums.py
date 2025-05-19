@@ -29,3 +29,11 @@ class LfoStyle(enum.Enum):
     SQUARE = "square"
     TRIANGLE = "triangle"
     PERLIN = "perlin"
+
+
+class Mode(enum.Enum):
+    READY_MODE = "ready_mode"
+    PRESET_SELECT_MODE = "preset_select_mode"
+    LAYER_SELECT_MODE = "layer_select_mode"
+    VALUE_SEND_MODE = "value_send_mode"
+    DISCONNECT_MODE = "disconnect_mode"

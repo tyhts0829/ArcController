@@ -1,10 +1,3 @@
-"""
-model.model
------------
-
-Arc アプリケーションの状態を保持するデータクラス群。
-"""
-
 from __future__ import annotations
 
 import logging

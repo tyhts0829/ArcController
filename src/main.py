@@ -6,6 +6,7 @@ from omegaconf import DictConfig, ListConfig
 from services.lfo.lfo_engine import LFOEngine
 from services.renderer.led_renderer import LedRenderer
 from src.controller.controller import ArcController
+from src.enums.enums import Mode
 from src.model.model import Model
 from src.modes.disconnect_mode import DisconnectMode
 from src.modes.layer_select_mode import LayerSelectMode
@@ -36,13 +37,16 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         threshold=cfg.mode.preset_select_mode.threshold,
         led_renderer=led_renderer,
     )
+    mode_mapping = {
+        Mode.VALUE_SEND_MODE: value_send_mode,
+        Mode.LAYER_SELECT_MODE: layer_select_mode,
+        Mode.PRESET_SELECT_MODE: preset_select_mode,
+        Mode.DISCONNECT_MODE: disconnect_mode,
+        Mode.READY_MODE: ready_mode,
+    }
     app = ArcController(
         model=model,
-        ready_mode=ready_mode,
-        value_send_mode=value_send_mode,
-        layer_select_mode=layer_select_mode,
-        preset_select_mode=preset_select_mode,
-        disconnect_mode=disconnect_mode,
+        mode_mapping=mode_mapping,
     )
 
     serialosc = setup_serialosc(app)

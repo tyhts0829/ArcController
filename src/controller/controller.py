@@ -8,14 +8,18 @@ monome Arc デバイスからの入力イベントを Model / LED / LFO へ橋�
 
 import asyncio
 import logging
-from enum import Enum
+import typing
+
+# from enum import Enum  # no longer needed
 from typing import Optional
 
 import monome
 import transitions
 from transitions import EventData, Machine, State
 
+from src.enums.enums import Mode
 from src.model.model import Model
+from src.modes.base_mode import BaseMode
 from src.modes.disconnect_mode import DisconnectMode
 from src.modes.layer_select_mode import LayerSelectMode
 from src.modes.preset_select_mode import PresetSelectMode
@@ -25,14 +29,8 @@ from src.modes.value_send_mode import ValueSendMode
 LOGGER = logging.getLogger(__name__)
 
 
-class Mode(Enum):
-    PRESET_SELECT_MODE = "preset_select_mode"
-    LAYER_SELECT_MODE = "layer_select_mode"
-    VALUE_SEND_MODE = "value_send_mode"
-    DISCONNECT_MODE = "disconnect_mode"
-
-
 STATES = [
+    State(name=Mode.READY_MODE),
     State(name=Mode.PRESET_SELECT_MODE, on_enter="_on_enter_preset_select", on_exit="_on_exit_preset_select"),
     State(name=Mode.LAYER_SELECT_MODE, on_enter="_on_enter_layer_select", on_exit="_on_exit_layer_select"),
     State(name=Mode.VALUE_SEND_MODE),
@@ -61,20 +59,17 @@ class ArcController(monome.ArcApp):
     def __init__(
         self,
         model: Model,
-        ready_mode: ReadyMode,
-        value_send_mode: ValueSendMode,
-        layer_select_mode: LayerSelectMode,
-        preset_select_mode: PresetSelectMode,
-        disconnect_mode: DisconnectMode,
+        mode_mapping: dict[Mode, BaseMode],
     ) -> None:
         super().__init__()
         self.model = model
         self.state: Optional[Mode] = None
-        self.value_send_mode = value_send_mode
-        self.preset_select_mode = preset_select_mode
-        self.layer_select_mode = layer_select_mode
-        self.ready_mode = ready_mode
-        self.disconnect_mode = disconnect_mode
+        self._modes: dict[Mode, BaseMode] = mode_mapping
+        self.ready_mode = typing.cast(ReadyMode, self._modes[Mode.READY_MODE])
+        self.value_send_mode = typing.cast(ValueSendMode, self._modes[Mode.VALUE_SEND_MODE])
+        self.layer_select_mode = typing.cast(LayerSelectMode, self._modes[Mode.LAYER_SELECT_MODE])
+        self.preset_select_mode = typing.cast(PresetSelectMode, self._modes[Mode.PRESET_SELECT_MODE])
+        self.disconnect_mode = typing.cast(DisconnectMode, self._modes[Mode.DISCONNECT_MODE])
         self.machine: Machine = transitions.Machine(
             model=self,
             states=STATES,
@@ -105,20 +100,22 @@ class ArcController(monome.ArcApp):
 
     def on_arc_delta(self, ring_idx: int, delta: int) -> None:
         """
-        Arc デバイスのダイヤルイベントを受け取り、状態に応じて処理を振り分ける。
+        Arc デバイスのダイヤルイベントを受け取り、現在のモードに委譲する。
 
         Args:
             ring_idx (int): ダイヤル番号。
             delta (int): ダイヤルの変化量。
         """
-        if self.state == Mode.VALUE_SEND_MODE:
-            self.value_send_mode.on_arc_delta(ring_idx, delta)
-        elif self.state == Mode.LAYER_SELECT_MODE:
-            self.layer_select_mode.on_arc_delta(ring_idx, delta)
-        elif self.state == Mode.PRESET_SELECT_MODE:
-            self.preset_select_mode.on_arc_delta(ring_idx, delta)
+        state = self.state
+        if state is None:
+            LOGGER.error("State is None: cannot dispatch on_arc_delta")
+            return
+
+        handler = self._modes.get(state)
+        if handler is not None:
+            handler.on_arc_delta(ring_idx, delta)
         else:
-            LOGGER.error("Unknown state: %s", self.state)
+            LOGGER.error("Unknown state: %s", state)
 
     def on_arc_ready(self) -> None:
         """
