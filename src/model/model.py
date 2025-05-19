@@ -18,25 +18,35 @@ from src.utils.util import clamp, fmt
 LOGGER = logging.getLogger(__name__)
 
 
-# モデルレイヤー数（Model.from_config で cfg.model.num_layers に動的に上書きされる）
-num_layers = 4
-
-
 @dataclass
 class Model:
-    """アプリ全体の状態を管理するルートクラス。"""
+    """アプリ全体の状態を管理するルートクラス。
 
-    layers: List[LayerState] = field(default_factory=lambda: [LayerState(name=f"L{i}") for i in range(num_layers)])
+    Attributes:
+        num_layers (int): レイヤー数。
+        layers (List[LayerState]): 各レイヤーの状態リスト。
+        active_layer_idx (int): 現在アクティブなレイヤー番号。
+    """
+
+    num_layers: int = 4
+    layers: List["LayerState"] = field(init=False)
     active_layer_idx: int = 0  # 現在の編集対象レイヤー
+
+    def __post_init__(self) -> None:
+        # num_layers に基づいて layers を生成
+        self.layers = [LayerState(name=f"L{i}") for i in range(self.num_layers)]
 
     @classmethod
     def from_config(cls, cfg) -> "Model":
-        global num_layers
         try:
             num_layers = cfg.model.num_layers
         except AttributeError:
+            num_layers = 4
             LOGGER.warning("cfg.model.num_layers not found – fallback to %d layers", num_layers)
-        model = cls()
+
+        model = cls(num_layers=num_layers)
+
+        # プリセットを各リングに適用
         default_preset = cfg.presets[0]
         for layer in model.layers:
             for ring in layer:
@@ -45,7 +55,7 @@ class Model:
         return model
 
     @property
-    def active_layer(self) -> LayerState:
+    def active_layer(self) -> "LayerState":
         return self.layers[self.active_layer_idx]
 
     def cycle_layer(self, step: int = 1) -> None:
@@ -53,10 +63,10 @@ class Model:
         LOGGER.info("Layer %d -> %d", self.active_layer_idx, (self.active_layer_idx + step) % len(self.layers))
         self.active_layer_idx = (self.active_layer_idx + step) % len(self.layers)
 
-    def __getitem__(self, ring_idx: int) -> RingState:
+    def __getitem__(self, ring_idx: int) -> "RingState":
         return self.active_layer[ring_idx]
 
-    def __iter__(self) -> Iterator[LayerState]:
+    def __iter__(self) -> Iterator["LayerState"]:
         return iter(self.layers)
 
 
