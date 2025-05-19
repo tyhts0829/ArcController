@@ -11,7 +11,6 @@ import logging
 import math
 import random
 from abc import ABC, abstractmethod
-from functools import cached_property
 from typing import Type
 
 import noise
@@ -69,7 +68,6 @@ class BaseLedStyle(ABC):
         return int(norm * (self.spec.leds_per_ring - 1)) % self.spec.leds_per_ring
 
     # ----------------- meta ---------------------
-    @cached_property
     def style_enum(self) -> LedStyle:
         """自身のクラスに対応する LedStyle を返す"""
         return self.__class__.style()

@@ -2,7 +2,6 @@ import logging
 import math
 import random
 from abc import ABC, abstractmethod
-from functools import cached_property
 
 import noise
 
@@ -30,7 +29,6 @@ class BaseLfoStyle(ABC):
         raise NotImplementedError
 
     # ----------------- meta ---------------------
-    @cached_property
     def style_enum(self) -> LfoStyle:
         """自身のクラスに対応する LfoStyle を返す"""
         return self.__class__.style()

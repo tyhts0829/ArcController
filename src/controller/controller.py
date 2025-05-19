@@ -145,7 +145,7 @@ class ArcController(monome.ArcApp):
         """
         self._is_pressed = True
         self._start_long_press_timer()
-        self.press()  # type: ignore
+        self.trigger("press")  # type: ignore
 
     def _on_key_released(self) -> None:
         """
@@ -156,7 +156,7 @@ class ArcController(monome.ArcApp):
         - 長押し判定用タイマーをキャンセル
         """
         self._is_pressed = False
-        self.release()  # type: ignore
+        self.trigger("release")  # type: ignore
         self._cancel_long_press_timer()
 
     def _start_long_press_timer(self) -> None:
@@ -181,7 +181,7 @@ class ArcController(monome.ArcApp):
         0.5 秒経過後も押下状態が継続している場合に長押しイベントを発火させる。
         """
         if self._is_pressed:
-            self.long_press()  # type: ignore
+            self.trigger("long_press")  # type: ignore
             self._cancel_long_press_timer()
 
     # ---------------------------------
