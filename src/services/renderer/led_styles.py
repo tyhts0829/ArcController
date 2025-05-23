@@ -299,7 +299,7 @@ class PerlinLedStyle(BaseLedStyle):
     # ---------------------- パラメータ定数 ----------------------
     PHI = (1 + math.sqrt(5)) / 2  # 黄金比
     MINIMUM_NOISE_RADIUS = PHI / 2.0
-    NOISE_RADIUS_SCALE = 10.0
+    NOISE_RADIUS_SCALE = 5.0
     MOVE_SPEED = 0.1
     NOISE_POSITION_INCREMENT = 0.01
     NOISE_POSITION_Y_SCALE = 0.3
@@ -329,11 +329,11 @@ class PerlinLedStyle(BaseLedStyle):
     # --------------------- public interface -------------------
     def build_levels(self, value: float, style: ValueStyle) -> list[int]:
         """64 個の輝度レベルを返すメイン関数"""
-        norm = self._value_to_norm(value, style)
         levels = self._levels
         levels[:] = [0] * self.spec.leds_per_ring
 
         # ノイズ円半径と走査位置を更新
+        norm = self._value_to_norm(value, style)
         radius = self.MINIMUM_NOISE_RADIUS + norm * self.NOISE_RADIUS_SCALE
         self._update_noise_position(norm)
 

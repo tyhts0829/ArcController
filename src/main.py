@@ -28,8 +28,10 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     loop = asyncio.get_running_loop()
     model = Model.from_config(cfg)
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
-    lfo_engine = LFOEngine(model=model, led_renderer=led_renderer, fps=cfg.services.lfo_engine.fps)
     midi_sender = MidiSender()
+    lfo_engine = LFOEngine(
+        model=model, led_renderer=led_renderer, midi_sender=midi_sender, fps=cfg.services.lfo_engine.fps
+    )
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
     value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer, midi_sender=midi_sender)
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)

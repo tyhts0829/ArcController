@@ -63,10 +63,15 @@ class ValueSendMode(BaseMode):
         ring_state = self.model[ring_idx]
         if ring_state.lfo_style == LfoStyle.STATIC:
             ring_state.apply_delta(delta)
+            # STATIC の場合のみ手動操作時に MIDI 送信
+            self._send_midi_if_needed(ring_state)
         else:
             ring_state.apply_lfo_delta(delta)
+            # LFO が有効な場合は LFOEngine が常時送信するため、ここでは送信しない
         self.led_renderer.render_value(ring_idx, ring_state)
-        # --- MIDI 送信 ---------------------------------------------------
+
+    def _send_midi_if_needed(self, ring_state) -> None:
+        """MIDI CC を送信する内部ヘルパー。"""
         if ring_state.value_style == ValueStyle.MIDI_14BIT:
             self.midi_sender.send_cc_14bit(ring_state.cc_number, ring_state.value)
         elif ring_state.value_style == ValueStyle.MIDI_7BIT:
