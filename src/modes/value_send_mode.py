@@ -13,7 +13,8 @@ mode.value_send_mode
 import monome
 
 from services.renderer.led_renderer import LedRenderer
-from src.enums.enums import LfoStyle
+from services.sender.control_sender import MidiSender
+from src.enums.enums import LfoStyle, ValueStyle
 from src.model.model import Model
 from src.modes.base_mode import BaseMode
 
@@ -27,12 +28,14 @@ class ValueSendMode(BaseMode):
     Args:
         model (Model): アプリケーション状態モデル。
         led_renderer (LedRenderer): LED 描画を担当するレンダラ。
+        midi_sender (MidiSender): MIDI 送信ユーティリティ。
     """
 
-    def __init__(self, model: Model, led_renderer: LedRenderer) -> None:
+    def __init__(self, model: Model, led_renderer: LedRenderer, midi_sender: MidiSender) -> None:
         """依存オブジェクトを保持するのみ。"""
         self.model = model
         self.led_renderer = led_renderer
+        self.midi_sender = midi_sender
 
     def on_arc_ready(self, arc: monome.Arc) -> None:
         """ValueSendMode では接続イベントを無視する。
@@ -63,3 +66,8 @@ class ValueSendMode(BaseMode):
         else:
             ring_state.apply_lfo_delta(delta)
         self.led_renderer.render_value(ring_idx, ring_state)
+        # --- MIDI 送信 ---------------------------------------------------
+        if ring_state.value_style == ValueStyle.MIDI_14BIT:
+            self.midi_sender.send_cc_14bit(ring_state.cc_number, ring_state.current_value)
+        elif ring_state.value_style == ValueStyle.MIDI_7BIT:
+            self.midi_sender.send_cc_7bit(ring_state.cc_number, ring_state.current_value)

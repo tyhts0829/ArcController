@@ -39,10 +39,12 @@ class Model:
 
         model = cls(num_layers=num_layers)
 
-        # プリセットを各リングに適用
+        # プリセットと CC 番号を各リングに適用
         default_preset = cfg.presets[0]
-        for layer in model.layers:
-            for ring in layer:
+        for layer_idx, layer in enumerate(model.layers):
+            for ring_idx, ring in enumerate(layer):
+                # cc_number を 1‒16 で割り当てる (4 レイヤー × 4 リング)
+                ring.cc_number = layer_idx * ARC_SPEC.rings_per_device + ring_idx + 1
                 ring.set_presets(cfg.presets)
                 ring.apply_preset(default_preset)
         return model
@@ -144,9 +146,9 @@ class RingState:
             # 無限レンジはそのまま返す
             pass
         elif style == ValueStyle.MIDI_7BIT:
-            new_val = clamp(round(new_val), 0, 127)
+            new_val = clamp(new_val, 0.0, 1.0)
         elif style == ValueStyle.MIDI_14BIT:
-            new_val = clamp(round(new_val), 0, 16383)
+            new_val = clamp(new_val, 0.0, 1.0)
         else:
             LOGGER.warning("Unknown ValueStyle %s – no update", style)
             return

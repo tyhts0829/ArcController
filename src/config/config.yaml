@@ -4,7 +4,7 @@
 globals:
   # ログレベル（main.py の setup_logging に渡す）
   logging:
-    level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level: "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 services:
   lfo_engine:
@@ -26,8 +26,12 @@ model:
 # プリセット定義
 # ------------------------------------------------------------
 presets:
+  - name: potentiometer_midi
+    value_style: midi_7_bit # linear, infinite, bipolar, midi_7_bit, midi_14_bit
+    led_style: potentiometer
+    lfo_style: static
   - name: potentiometer
-    value_style: linear
+    value_style: linear # linear, infinite, bipolar, midi_7_bit, midi_14_bit
     led_style: potentiometer
     lfo_style: static
   - name: dot

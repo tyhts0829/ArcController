@@ -54,9 +54,9 @@ class BaseLedStyle(ABC):
         elif style == ValueStyle.INFINITE:
             norm = value % 1.0
         elif style == ValueStyle.MIDI_7BIT:
-            norm = value / 127.0
+            norm = value
         elif style == ValueStyle.MIDI_14BIT:
-            norm = value / 16383.0
+            norm = value
         else:
             norm = 0.0
             LOGGER.warning("Unknown ValueStyle %s -> norm=0", style)

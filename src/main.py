@@ -5,6 +5,7 @@ from omegaconf import DictConfig, ListConfig
 
 from services.lfo.lfo_engine import LFOEngine
 from services.renderer.led_renderer import LedRenderer
+from services.sender.control_sender import MidiSender
 from src.controller.controller import ArcController
 from src.enums.enums import Mode
 from src.model.model import Model
@@ -28,8 +29,9 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     model = Model.from_config(cfg)
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
     lfo_engine = LFOEngine(model=model, led_renderer=led_renderer, fps=cfg.services.lfo_engine.fps)
+    midi_sender = MidiSender()
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
-    value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer)
+    value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer, midi_sender=midi_sender)
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)
     disconnect_mode = DisconnectMode(lfo_engine=lfo_engine)
     preset_select_mode = PresetSelectMode(
