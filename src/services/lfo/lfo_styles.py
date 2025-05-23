@@ -42,7 +42,7 @@ class StaticLfoStyle(BaseLfoStyle):
         return LfoStyle.STATIC
 
     def update(self, ring_state: RingState, dt: float) -> float:  # 何もしない
-        return ring_state.current_value
+        return ring_state.value
 
 
 class RandomLfoStyle(BaseLfoStyle):

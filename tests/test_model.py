@@ -19,9 +19,9 @@ from src.model.model import Model, RingState
 # ----------------------------------------------------------------------
 def test_apply_delta_clamps_linear():
     """LINEAR スタイルで 0.0‒1.0 にクランプされるか"""
-    ring = RingState(current_value=0.9, value_style=ValueStyle.LINEAR)
+    ring = RingState(value=0.9, value_style=ValueStyle.LINEAR)
     ring.apply_delta(200)  # +0.2
-    assert ring.current_value == 1.0
+    assert ring.value == 1.0
 
 
 # ----------------------------------------------------------------------
@@ -59,9 +59,9 @@ def test_apply_lfo_delta_clamps_range():
 )
 def test_apply_delta_all_styles(style, start, delta, expected):
     """すべての ValueStyle で境界値が期待通りか検証"""
-    ring = RingState(current_value=start, value_style=style)
+    ring = RingState(value=start, value_style=style)
     ring.apply_delta(delta)
-    assert ring.current_value == expected
+    assert ring.value == expected
 
 
 # ----------------------------------------------------------------------

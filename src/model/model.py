@@ -98,7 +98,7 @@ class RingState:
         lfo_freq_gain (float): ringΔに対するlfo周波数の増分
     """
 
-    current_value: float = 0.0
+    value: float = 0.0
     cc_number: int = 0  # レイヤーごとに割り当てる
     value_style: ValueStyle = ValueStyle.LINEAR
     led_style: LedStyle = LedStyle.PERLIN
@@ -129,7 +129,7 @@ class RingState:
         self.lfo_style = LfoStyle(preset["lfo_style"])
         # ValueStyle が BIPOLAR に切り替わった場合、論理的な中央値をセットする
         if self.value_style == ValueStyle.BIPOLAR:
-            self.current_value = 0.5
+            self.value = 0.5
 
     def apply_delta(self, delta: int) -> None:
         """リングの現在値をスタイルに応じて更新する。
@@ -138,13 +138,13 @@ class RingState:
             delta (float): 入力エンコーダの増分。
         """
         style = self.value_style
-        new_val = self.current_value + delta * self.value_gain
+        new_val = self.value + delta * self.value_gain
 
         # --- スタイル別の丸め・制限 -------------------------------
         if style != ValueStyle.INFINITE:  # 無限値は制限しない
             new_val = clamp(new_val, 0.0, 1.0)
 
-        self.current_value = new_val
+        self.value = new_val
 
     def apply_lfo_delta(self, delta: float) -> None:
         """LFO 周波数を 0.0‒1.0 範囲で更新する。

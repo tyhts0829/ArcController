@@ -68,6 +68,6 @@ class ValueSendMode(BaseMode):
         self.led_renderer.render_value(ring_idx, ring_state)
         # --- MIDI 送信 ---------------------------------------------------
         if ring_state.value_style == ValueStyle.MIDI_14BIT:
-            self.midi_sender.send_cc_14bit(ring_state.cc_number, ring_state.current_value)
+            self.midi_sender.send_cc_14bit(ring_state.cc_number, ring_state.value)
         elif ring_state.value_style == ValueStyle.MIDI_7BIT:
-            self.midi_sender.send_cc_7bit(ring_state.cc_number, ring_state.current_value)
+            self.midi_sender.send_cc_7bit(ring_state.cc_number, ring_state.value)

@@ -16,7 +16,7 @@ from src.services.lfo.lfo_styles import (
 
 def test_static_lfo_returns_current_value():
     """StaticLfoStyle should echo `current_value` without mutating the phase."""
-    ring = RingState(current_value=0.123, lfo_amplitude=0.9)
+    ring = RingState(value=0.123, lfo_amplitude=0.9)
     style = StaticLfoStyle()
 
     out = style.update(ring, dt=1.0)

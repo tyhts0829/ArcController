@@ -150,7 +150,7 @@ class LFOEngine:
         lfo = self._get_or_create_lfo(key, ring_state)
 
         # 値更新
-        ring_state.current_value = lfo.update(ring_state, dt)
+        ring_state.value = lfo.update(ring_state, dt)
 
         # アクティブレイヤーのみ LED 描画
         if layer_idx == self.model.active_layer_idx:

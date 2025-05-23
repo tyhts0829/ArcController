@@ -189,4 +189,4 @@ class LedRenderer:
             led_style = get_led_instance(ring_state.led_style, self.max_brightness)
             self._styles[ring_idx] = led_style
         # レベルリストを生成
-        return led_style.build_levels(ring_state.current_value, ring_state.value_style)
+        return led_style.build_levels(ring_state.value, ring_state.value_style)

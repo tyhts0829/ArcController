@@ -15,7 +15,7 @@ def test_build_levels_reinstantiates_style():
     renderer = LedRenderer(max_brightness=10)
 
     # First call with DOT style
-    rs = RingState(led_style=LedStyle.DOT, value_style=ValueStyle.LINEAR, current_value=0.0)
+    rs = RingState(led_style=LedStyle.DOT, value_style=ValueStyle.LINEAR, value=0.0)
     levels_first = renderer._build_levels(0, rs)  # pylint: disable=protected-access
     style_first = renderer._styles[0]  # pylint: disable=protected-access
 
@@ -37,7 +37,7 @@ def test_build_levels_returns_64_ints():
     """Returned level list must contain 64 ints within [0, max_brightness]."""
     max_brightness = 10
     renderer = LedRenderer(max_brightness=max_brightness)
-    rs = RingState(led_style=LedStyle.BIPOLAR, value_style=ValueStyle.BIPOLAR, current_value=0.0)
+    rs = RingState(led_style=LedStyle.BIPOLAR, value_style=ValueStyle.BIPOLAR, value=0.0)
 
     levels = renderer._build_levels(0, rs)  # pylint: disable=protected-access
 
