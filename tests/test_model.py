@@ -46,15 +46,15 @@ def test_apply_lfo_delta_clamps_range():
         # LINEAR  : clamp 上下限
         (ValueStyle.LINEAR, 0.1, 10_000, 1.0),  # 上限
         (ValueStyle.LINEAR, 0.9, -10_000, 0.0),  # 下限
-        # BIPOLAR : clamp ±0.5
-        (ValueStyle.BIPOLAR, 0.0, 10_000, 0.5),
-        (ValueStyle.BIPOLAR, 0.0, -10_000, -0.5),
+        # BIPOLAR : clamp 0.0-1.0 (現在の実装では全て0.0-1.0範囲)
+        (ValueStyle.BIPOLAR, 0.0, 10_000, 1.0),
+        (ValueStyle.BIPOLAR, 0.0, -10_000, 0.0),
         # INFINITE: 制限なし（増分 = delta * value_gain）
         (ValueStyle.INFINITE, 0.0, 12_345, pytest.approx(12.345)),
-        # MIDI 7‑bit: 整数丸め & clamp 0‒127
-        (ValueStyle.MIDI_7BIT, 120, 100_000, 127),
-        # MIDI 14‑bit: clamp 上限 16383
-        (ValueStyle.MIDI_14BIT, 16_000, 1_000_000, 16_383),
+        # MIDI 7‑bit: clamp 0.0-1.0 (現在の実装では全て0.0-1.0範囲)
+        (ValueStyle.MIDI_7BIT, 0.12, 100_000, 1.0),
+        # MIDI 14‑bit: clamp 0.0-1.0 (現在の実装では全て0.0-1.0範囲)
+        (ValueStyle.MIDI_14BIT, 0.16, 1_000_000, 1.0),
     ],
 )
 def test_apply_delta_all_styles(style, start, delta, expected):

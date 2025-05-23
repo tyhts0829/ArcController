@@ -119,7 +119,7 @@ class RingState:
             LOGGER.debug("%s: %s -> %s", name, fmt(old), fmt(value))
 
     def apply_preset(self, preset: dict) -> None:
-        """プリセット dict から value_style / led_style / lfo_style を更新する。
+        """プリセットから各種スタイルを更新し、BIPOLAR なら current_value を 0.5 に補正する。
 
         Args:
             preset (dict): プリセット定義。
@@ -127,6 +127,9 @@ class RingState:
         self.value_style = ValueStyle(preset["value_style"])
         self.led_style = LedStyle(preset["led_style"])
         self.lfo_style = LfoStyle(preset["lfo_style"])
+        # ValueStyle が BIPOLAR に切り替わった場合、論理的な中央値をセットする
+        if self.value_style == ValueStyle.BIPOLAR:
+            self.current_value = 0.5
 
     def apply_delta(self, delta: int) -> None:
         """リングの現在値をスタイルに応じて更新する。
@@ -138,20 +141,8 @@ class RingState:
         new_val = self.current_value + delta * self.value_gain
 
         # --- スタイル別の丸め・制限 -------------------------------
-        if style == ValueStyle.LINEAR:
+        if style != ValueStyle.INFINITE:  # 無限値は制限しない
             new_val = clamp(new_val, 0.0, 1.0)
-        elif style == ValueStyle.BIPOLAR:
-            new_val = clamp(new_val, -0.5, 0.5)
-        elif style == ValueStyle.INFINITE:
-            # 無限レンジはそのまま返す
-            pass
-        elif style == ValueStyle.MIDI_7BIT:
-            new_val = clamp(new_val, 0.0, 1.0)
-        elif style == ValueStyle.MIDI_14BIT:
-            new_val = clamp(new_val, 0.0, 1.0)
-        else:
-            LOGGER.warning("Unknown ValueStyle %s – no update", style)
-            return
 
         self.current_value = new_val
 

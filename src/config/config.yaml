@@ -26,9 +26,9 @@ model:
 # プリセット定義
 # ------------------------------------------------------------
 presets:
-  - name: potentiometer_midi
-    value_style: midi_7_bit # linear, infinite, bipolar, midi_7_bit, midi_14_bit
-    led_style: potentiometer
+  - name: bipolar
+    value_style: bipolar
+    led_style: bipolar
     lfo_style: static
   - name: potentiometer
     value_style: linear # linear, infinite, bipolar, midi_7_bit, midi_14_bit
@@ -37,10 +37,6 @@ presets:
   - name: dot
     value_style: infinite
     led_style: dot
-    lfo_style: static
-  - name: bipolar
-    value_style: bipolar
-    led_style: bipolar
     lfo_style: static
   - name: perlin
     value_style: linear

@@ -47,19 +47,10 @@ class BaseLedStyle(ABC):
     # ----------------- helper ---------------------
     def _value_to_norm(self, value: float, style: ValueStyle) -> float:
         """ValueStyle → 0‒1 の正規化値へマップ (小数部保持)"""
-        if style == ValueStyle.LINEAR:
-            norm = value
-        elif style == ValueStyle.BIPOLAR:
-            norm = value
-        elif style == ValueStyle.INFINITE:
+        if style == ValueStyle.INFINITE:
             norm = value % 1.0
-        elif style == ValueStyle.MIDI_7BIT:
-            norm = value
-        elif style == ValueStyle.MIDI_14BIT:
-            norm = value
         else:
-            norm = 0.0
-            LOGGER.warning("Unknown ValueStyle %s -> norm=0", style)
+            norm = value
         return norm
 
     def _value_to_pos(self, value: float, style: ValueStyle) -> int:
@@ -280,17 +271,17 @@ class BipolarStyle(BaseLedStyle):  # TODO バーの先端を最大光度に
         levels[self.RIGHT_DOWN_IDX] = dim
 
         # --- 入力値を -0.5‒+0.5 に正規化 ---------------------------------
-        raw = value if style is ValueStyle.BIPOLAR else self._value_to_norm(value, style) - 0.5
-        raw = max(-0.5, min(0.5, raw))
-        if raw == 0.0:
+        centered_value = self._value_to_norm(value, style) - 0.5
+        centered_value = max(-0.5, min(0.5, centered_value))
+        if centered_value == 0.0:
             return levels
 
         # --- 帯を描画 ----------------------------------------------------
-        span_steps = int(round(abs(raw) * self.MAX_SPAN * 2))  # 0‒24
+        span_steps = int(round(abs(centered_value) * self.MAX_SPAN * 2))  # 0‒24
         if span_steps == 0:
             return levels
 
-        step_sign = 1 if raw > 0 else -1
+        step_sign = 1 if centered_value > 0 else -1
         for step in range(1, span_steps + 1):
             idx = (self.CENTER_IDX + step_sign * step) % n_leds
             levels[idx] = dim

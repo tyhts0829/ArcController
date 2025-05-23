@@ -19,7 +19,7 @@ def test_build_levels_reinstantiates_style():
     levels_first = renderer._build_levels(0, rs)  # pylint: disable=protected-access
     style_first = renderer._styles[0]  # pylint: disable=protected-access
 
-    assert style_first.style_enum is LedStyle.DOT
+    assert style_first.style_enum() is LedStyle.DOT
     assert len(levels_first) == 64
 
     # Change to POTENTIOMETER style and call again
@@ -28,7 +28,7 @@ def test_build_levels_reinstantiates_style():
     style_second = renderer._styles[0]  # pylint: disable=protected-access
 
     # Instance should be re‑created with a different id and class
-    assert style_second.style_enum is LedStyle.POTENTIOMETER
+    assert style_second.style_enum() is LedStyle.POTENTIOMETER
     assert style_first is not style_second
     assert len(levels_second) == 64
 
