@@ -128,7 +128,7 @@ class RingState:
         self.led_style = LedStyle(preset["led_style"])
         self.lfo_style = LfoStyle(preset["lfo_style"])
         # ValueStyle が BIPOLAR に切り替わった場合、論理的な中央値をセットする
-        if self.value_style == ValueStyle.BIPOLAR:
+        if self.value_style == ValueStyle.BIPOLAR or self.led_style == LedStyle.BIPOLAR:
             self.value = 0.5
 
     def apply_delta(self, delta: int) -> None:

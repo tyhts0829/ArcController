@@ -15,6 +15,8 @@ from typing import Any
 import aiosc  # type: ignore
 import rtmidi  # type: ignore
 
+from src.utils.util import clamp
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -48,18 +50,18 @@ class MidiSender:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def send_cc_7bit(self, cc_num: int, value: int, channel: int = 0) -> None:
+    def send_cc_7bit(self, cc_num: int, value: float, channel: int = 0) -> None:
         """7‑bit Control‑Change を送信する。"""
-        value = self._clamp(value * 127, 0, 127)
+        value = int(clamp(value * 127, 0, 127))
         LOGGER.debug("MIDI 7‑bit CC → ch=%d cc=%d value=%d", channel, cc_num, value)
         self._midi_out.send_message([0xB0 | channel, cc_num, value])
 
-    def send_cc_14bit(self, cc_num: int, value: int, channel: int = 0) -> None:
+    def send_cc_14bit(self, cc_num: int, value: float, channel: int = 0) -> None:
         """14‑bit Control‑Change を MSB/LSB のペアで送信する。
 
         *MSB* = ``cc_num``, *LSB* = ``cc_num + 32`` という MIDI 1.0 の標準に従う。
         """
-        value = self._clamp(value * 16383, 0, 16383)
+        value = int(clamp(value * 16383, 0, 16383))
         msb = (value >> 7) & 0x7F
         lsb = value & 0x7F
         LOGGER.debug(
@@ -72,13 +74,6 @@ class MidiSender:
         )
         self._midi_out.send_message([0xB0 | channel, cc_num, msb])
         self._midi_out.send_message([0xB0 | channel, cc_num + 32, lsb])
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _clamp(value: int, lo: int = 0, hi: int = 127) -> int:
-        return max(lo, min(hi, value))
 
 
 # ----------------------------------------------------------------------

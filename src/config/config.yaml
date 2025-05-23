@@ -26,19 +26,19 @@ model:
 # プリセット定義
 # ------------------------------------------------------------
 presets:
-  - name: bipolar
-    value_style: bipolar
-    led_style: bipolar
-    lfo_style: static
   - name: potentiometer
-    value_style: linear # linear, infinite, bipolar, midi_7_bit, midi_14_bit
+    value_style: midi_14_bit # linear, infinite, bipolar, midi_7_bit, midi_14_bit
     led_style: potentiometer
     lfo_style: static
+  - name: bipolar
+    value_style: midi_14_bit
+    led_style: bipolar
+    lfo_style: static
   - name: dot
-    value_style: infinite
+    value_style: midi_14_bit
     led_style: dot
     lfo_style: static
   - name: perlin
-    value_style: linear
+    value_style: midi_14_bit
     led_style: perlin
     lfo_style: perlin
