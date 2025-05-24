@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import multiprocessing
 
 from omegaconf import DictConfig, ListConfig
 
@@ -68,8 +69,8 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         led_renderer.all_off()
 
 
-def run() -> None:
-    """設定ファイルの読み込みやログ設定などを行った上でアプリケーションを実行する関数。
+def _sync_run() -> None:
+    """設定ファイルの読み込みやログ設定などを行った上でアプリケーションを実行する同期版関数。
 
     他のモジュールからインポートして呼び出しやすいように用意する。
     """
@@ -84,5 +85,32 @@ def run() -> None:
         LOGGER.info("Received exit signal, shutting down application")
 
 
+def run(detach: bool = True):
+    """ArcController を起動するユーティリティ関数。
+
+    クリエーティブコーディング側では::
+
+        import arc
+        proc = arc.run()  # 非同期で起動、以後ブロッキングしない
+
+    と書くだけで、内部的に別プロセスとして ArcController が立ち上がる。
+
+    Args:
+        detach (bool, optional): True の場合はデーモン子プロセスとして起動し、
+            `multiprocessing.Process` オブジェクトを返す。False の場合は
+            現在のプロセスをブロックして `_sync_run()` を実行する。
+
+    Returns:
+        multiprocessing.Process | None: detach=True なら起動した子プロセス、
+            False なら None。
+    """
+    if detach:
+        proc = multiprocessing.Process(target=_sync_run, daemon=True)
+        proc.start()
+        return proc
+    _sync_run()
+    return None
+
+
 if __name__ == "__main__":
-    run()
+    _sync_run()
