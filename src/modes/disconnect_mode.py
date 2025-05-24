@@ -17,8 +17,8 @@ import asyncio
 
 import monome
 
-from services.lfo.lfo_engine import LFOEngine
 from src.modes.base_mode import BaseMode
+from src.services.lfo.lfo_engine import LFOEngine
 
 
 class DisconnectMode(BaseMode):

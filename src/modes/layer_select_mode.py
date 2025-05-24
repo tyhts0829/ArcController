@@ -18,9 +18,9 @@ from __future__ import annotations
 
 import monome
 
-from services.renderer.led_renderer import LedRenderer
 from src.model.model import Model
 from src.modes.base_mode import BaseMode
+from src.services.renderer.led_renderer import LedRenderer
 
 
 class LayerSelectMode(BaseMode):

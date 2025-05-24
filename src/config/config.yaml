@@ -26,13 +26,13 @@ model:
 # プリセット定義
 # ------------------------------------------------------------
 presets:
-  - name: dot
-    value_style: midi_14_bit
-    led_style: dot
-    lfo_style: random_ease
   - name: potentiometer
     value_style: midi_14_bit # linear, infinite, bipolar, midi_7_bit, midi_14_bit
     led_style: potentiometer
+    lfo_style: static
+  - name: dot
+    value_style: midi_14_bit
+    led_style: dot
     lfo_style: static
   - name: bipolar
     value_style: midi_14_bit
@@ -41,7 +41,7 @@ presets:
   - name: dot
     value_style: midi_14_bit
     led_style: dot
-    lfo_style: static
+    lfo_style: random_ease
   - name: perlin
     value_style: midi_14_bit
     led_style: perlin

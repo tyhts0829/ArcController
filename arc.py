@@ -1,11 +1,10 @@
+# main.py
+
 import asyncio
 import logging
 
 from omegaconf import DictConfig, ListConfig
 
-from services.lfo.lfo_engine import LFOEngine
-from services.renderer.led_renderer import LedRenderer
-from services.sender.control_sender import MidiSender
 from src.controller.controller import ArcController
 from src.enums.enums import Mode
 from src.model.model import Model
@@ -14,13 +13,16 @@ from src.modes.layer_select_mode import LayerSelectMode
 from src.modes.preset_select_mode import PresetSelectMode
 from src.modes.ready_mode import ReadyMode
 from src.modes.value_send_mode import ValueSendMode
+from src.services.lfo.lfo_engine import LFOEngine
+from src.services.renderer.led_renderer import LedRenderer
+from src.services.sender.control_sender import MidiSender
 from src.utils.util import config_loader, setup_logging, setup_serialosc
 
 LOGGER = logging.getLogger(__name__)
 
 
 async def main(cfg: DictConfig | ListConfig) -> None:
-    """アプリケーションのメインエントリーポイント。
+    """アプリケーションを非同期的に動作させるメイン処理。
 
     Args:
         cfg (OmegaConf): 設定ファイルの内容を保持する `OmegaConf` オブジェクト。
@@ -56,6 +58,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     serialosc = setup_serialosc(app)
     await serialosc.connect()
     try:
+        # 実行をブロックし続けたい場合の簡易的な方法
         await loop.create_future()
     except asyncio.CancelledError:
         pass
@@ -65,12 +68,21 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         led_renderer.all_off()
 
 
-if __name__ == "__main__":
+def run() -> None:
+    """設定ファイルの読み込みやログ設定などを行った上でアプリケーションを実行する関数。
+
+    他のモジュールからインポートして呼び出しやすいように用意する。
+    """
     cfg = config_loader()
     level_name = cfg.globals.logging.level.upper()  # type: ignore
     log_level = getattr(logging, level_name, logging.WARNING)
     setup_logging(level=log_level)
+
     try:
         asyncio.run(main(cfg))
     except KeyboardInterrupt:
         LOGGER.info("Received exit signal, shutting down application")
+
+
+if __name__ == "__main__":
+    run()
