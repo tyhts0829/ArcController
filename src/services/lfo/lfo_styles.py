@@ -45,16 +45,6 @@ class StaticLfoStyle(BaseLfoStyle):
         return ring_state.value
 
 
-class RandomLfoStyle(BaseLfoStyle):
-    @classmethod
-    def style(cls) -> LfoStyle:
-        return LfoStyle.RANDOM
-
-    def update(self, ring_state: RingState, dt: float) -> float:
-        jitter = (random.random() - 0.5) * ring_state.lfo_frequency * dt
-        return jitter
-
-
 class SineLfoStyle(BaseLfoStyle):
     """正弦波を返すクラス"""
 
@@ -113,10 +103,9 @@ class PerlinLfoStyle(BaseLfoStyle):
 
     def update(self, ring_state: RingState, dt: float) -> float:
         ring_state.lfo_phase += ring_state.lfo_frequency * dt
-        val = noise.pnoise1(ring_state.lfo_phase, base=ring_state.cc_number * 10)  # -0.5〜0.5
-        print(f"val: {val}")
-        val = val + 1  # 0.0〜1.0にシフト。ただし、何故かちょっとマイナスめになるのでプラス側に補正
-        return ring_state.lfo_amplitude * val * 0.75  # 振幅が0 < 振幅 < 1.0 になるように補正
+        val = noise.pnoise1(ring_state.lfo_phase, base=ring_state.cc_number * 10)  # -1.0〜1.0の範囲
+        val = val + 1  # 0.0〜2.0にシフト
+        return ring_state.lfo_amplitude * val  # 振幅が0 < 振幅 < 1.0 になるように補正
 
 
 # -----------------------------------------------------------------------------
@@ -124,7 +113,6 @@ class PerlinLfoStyle(BaseLfoStyle):
 # -----------------------------------------------------------------------------
 LFO_STYLE_MAP = {
     LfoStyle.STATIC: StaticLfoStyle,
-    LfoStyle.RANDOM: RandomLfoStyle,
     LfoStyle.SINE: SineLfoStyle,
     LfoStyle.SAW: SawLfoStyle,
     LfoStyle.SQUARE: SquareLfoStyle,

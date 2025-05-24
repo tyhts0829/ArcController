@@ -23,7 +23,6 @@ class ValueStyle(enum.Enum):
 
 class LfoStyle(enum.Enum):
     STATIC = "static"
-    RANDOM = "random"
     SINE = "sine"
     SAW = "saw"
     SQUARE = "square"
