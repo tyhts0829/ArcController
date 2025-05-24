@@ -28,6 +28,7 @@ class LfoStyle(enum.Enum):
     SQUARE = "square"
     TRIANGLE = "triangle"
     PERLIN = "perlin"
+    RANDOM_EASE = "random_ease"
 
 
 class Mode(enum.Enum):

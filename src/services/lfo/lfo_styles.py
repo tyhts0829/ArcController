@@ -108,6 +108,109 @@ class PerlinLfoStyle(BaseLfoStyle):
         return ring_state.lfo_amplitude * val  # 振幅が0 < 振幅 < 1.0 になるように補正
 
 
+class RandomEaseLfoStyle(BaseLfoStyle):
+    """一定間隔ごとにランダムな目標値を生成し、イージングで滑らかに追従するLFO。
+
+    特徴:
+    - lfo_frequency が高いほど、目標値の更新頻度が高くなります
+    - 目標値への追従はイージング関数により滑らかに行われます
+    - 各CC番号ごとに独立した状態を管理します
+
+    設定値:
+    - MIN_INTERVAL: 最短更新間隔（lfo_frequency = 1.0 時）
+    - MAX_INTERVAL: 最長更新間隔（lfo_frequency = 0.0 時）
+    - EASING_COEFFICIENT: イージングの強度（0に近いほど緩やか、1で即座に変化）
+    """
+
+    # 定数定義
+    MIN_INTERVAL: float = 0.2  # 秒
+    MAX_INTERVAL: float = 2.0  # 秒
+    EASING_COEFFICIENT: float = 0.1  # 0 < coefficient ≤ 1
+    OUTPUT_SCALE: float = 2.0  # 出力値のスケール係数
+
+    # 各CC番号の状態を管理するテーブル
+    _states: dict[int, dict[str, float]] = {}
+
+    @classmethod
+    def style(cls) -> LfoStyle:
+        return LfoStyle.RANDOM_EASE
+
+    def update(self, ring_state: RingState, dt: float) -> float:
+        """LFO値を更新して返します。
+
+        Args:
+            ring_state: リングの現在状態
+            dt: 前回更新からの経過時間（秒）
+
+        Returns:
+            更新されたLFO値
+        """
+        # 早期リターン: LFOが無効な場合
+        if self._should_return_early(ring_state):
+            return self._get_early_return_value(ring_state)
+
+        # 状態の取得または初期化
+        state = self._get_or_initialize_state(ring_state.cc_number)
+
+        # 更新間隔の計算
+        update_interval = self._calculate_update_interval(ring_state.lfo_frequency)
+
+        # 目標値の更新判定と実行
+        self._update_target_if_needed(state, dt, update_interval)
+
+        # イージングによる値の更新
+        self._apply_easing(state)
+
+        # 最終出力値の計算
+        return self._calculate_output(ring_state, state)
+
+    def _should_return_early(self, ring_state: RingState) -> bool:
+        """早期リターンが必要かどうかを判定します。"""
+        return ring_state.lfo_frequency == 0.0 or ring_state.lfo_amplitude == 0.0
+
+    def _get_early_return_value(self, ring_state: RingState) -> float:
+        """早期リターン時の戻り値を取得します。"""
+        if ring_state.lfo_frequency == 0.0:
+            return ring_state.value
+        return 0.0  # lfo_amplitude == 0.0 の場合
+
+    def _get_or_initialize_state(self, cc_number: int) -> dict[str, float]:
+        """指定されたCC番号の状態を取得、または初期化します。"""
+        state = self._states.get(cc_number)
+        if state is None:
+            initial_target = random.random()
+            state = {"target": initial_target, "value": initial_target, "timer": 0.0}
+            self._states[cc_number] = state
+        return state
+
+    def _calculate_update_interval(self, lfo_frequency: float) -> float:
+        """LFO周波数に基づいて更新間隔を計算します。"""
+        # 周波数を0.0-1.0の範囲にクランプ
+        clamped_frequency = max(0.0, min(1.0, lfo_frequency))
+
+        # 線形補間: frequency=0 → MAX_INTERVAL, frequency=1 → MIN_INTERVAL
+        return self.MAX_INTERVAL + (self.MIN_INTERVAL - self.MAX_INTERVAL) * clamped_frequency
+
+    def _update_target_if_needed(self, state: dict[str, float], dt: float, interval: float) -> None:
+        """必要に応じて目標値を更新します。"""
+        state["timer"] += dt
+
+        if state["timer"] >= interval:
+            # タイマーをリセット（余剰時間を保持）
+            state["timer"] %= interval
+            # 新しい目標値を生成
+            state["target"] = random.random()
+
+    def _apply_easing(self, state: dict[str, float]) -> None:
+        """イージング関数を適用して現在値を更新します。"""
+        difference = state["target"] - state["value"]
+        state["value"] += difference * self.EASING_COEFFICIENT
+
+    def _calculate_output(self, ring_state: RingState, state: dict[str, float]) -> float:
+        """最終的な出力値を計算します。"""
+        return ring_state.lfo_amplitude * state["value"] * self.OUTPUT_SCALE
+
+
 # -----------------------------------------------------------------------------
 # Factory
 # -----------------------------------------------------------------------------
@@ -118,6 +221,7 @@ LFO_STYLE_MAP = {
     LfoStyle.SQUARE: SquareLfoStyle,
     LfoStyle.TRIANGLE: TriangleLfoStyle,
     LfoStyle.PERLIN: PerlinLfoStyle,
+    LfoStyle.RANDOM_EASE: RandomEaseLfoStyle,
 }
 
 

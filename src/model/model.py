@@ -103,7 +103,7 @@ class RingState:
     value_style: ValueStyle = ValueStyle.LINEAR
     led_style: LedStyle = LedStyle.PERLIN
     lfo_style: LfoStyle = LfoStyle.PERLIN
-    lfo_frequency: float = 0.1
+    lfo_frequency: float = 0.5  # 0.0‒1.0 の範囲で LFO 周波数を表現
     lfo_amplitude: float = 0.5  # 固定。外部アプリケーションでスケールすること前提のため。
     lfo_phase: float = 0.0
     preset_index: int = 0  # 現在のプリセット番号
