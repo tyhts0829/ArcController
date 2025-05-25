@@ -86,14 +86,14 @@ def _sync_run() -> None:
 
 
 def run(detach: bool = True):
-    """ArcController を起動するユーティリティ関数。
+    """Controller を起動するユーティリティ関数。
 
     クリエーティブコーディング側では::
 
         import arc
         proc = arc.run()  # 非同期で起動、以後ブロッキングしない
 
-    と書くだけで、内部的に別プロセスとして ArcController が立ち上がる。
+    と書くだけで、内部的に別プロセスとして Controller が立ち上がる。
 
     Args:
         detach (bool, optional): True の場合はデーモン子プロセスとして起動し、
