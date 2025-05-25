@@ -6,7 +6,7 @@ import multiprocessing
 
 from omegaconf import DictConfig, ListConfig
 
-from src.controller.controller import ArcController
+from src.controller.controller import Controller
 from src.enums.enums import Mode
 from src.model.model import Model
 from src.modes.disconnect_mode import DisconnectMode
@@ -51,7 +51,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         Mode.DISCONNECT_MODE: disconnect_mode,
         Mode.READY_MODE: ready_mode,
     }
-    app = ArcController(
+    app = Controller(
         model=model,
         mode_mapping=mode_mapping,
     )

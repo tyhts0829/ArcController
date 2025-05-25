@@ -45,7 +45,7 @@ TRANSITIONS = [
 ]
 
 
-class ArcController(monome.ArcApp):
+class Controller(monome.ArcApp):
     """
     モノーム Arc デバイスからの入力を処理し、状態遷移や LED レンダリング、
     LFO 生成などの各コンポーネントへ橋渡しを行うコントローラクラス。
