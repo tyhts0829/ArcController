@@ -3,9 +3,8 @@
 import math
 
 import pytest
-
-from src.model.model import RingState
-from src.services.lfo.lfo_styles import (
+from models.model import RingState
+from services.lfo.lfo_styles import (
     RandomEaseLfoStyle,
     SawLfoStyle,
     SineLfoStyle,

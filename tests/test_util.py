@@ -1,8 +1,7 @@
 import pytest
 from hypothesis import assume, given
 from hypothesis import strategies as st
-
-from src.utils.util import clamp
+from utils.util import clamp
 
 
 @pytest.mark.parametrize(

@@ -17,14 +17,14 @@ import monome
 import transitions
 from transitions import EventData, Machine, State
 
-from src.enums.enums import Mode
-from src.model.model import Model
-from src.modes.base_mode import BaseMode
-from src.modes.disconnect_mode import DisconnectMode
-from src.modes.layer_select_mode import LayerSelectMode
-from src.modes.preset_select_mode import PresetSelectMode
-from src.modes.ready_mode import ReadyMode
-from src.modes.value_send_mode import ValueSendMode
+from arc.enums.enums import Mode
+from arc.models.model import Model
+from arc.modes.base_mode import BaseMode
+from arc.modes.disconnect_mode import DisconnectMode
+from arc.modes.layer_select_mode import LayerSelectMode
+from arc.modes.preset_select_mode import PresetSelectMode
+from arc.modes.ready_mode import ReadyMode
+from arc.modes.value_send_mode import ValueSendMode
 
 LOGGER = logging.getLogger(__name__)
 

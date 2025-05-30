@@ -16,9 +16,9 @@ from typing import Type
 import noise
 import numpy as np
 
-from src.enums.enums import LedStyle, ValueStyle
-from src.utils.hardware_spec import ARC_SPEC, ArcSpec
-from src.utils.util import clamp
+from arc.enums.enums import LedStyle, ValueStyle
+from arc.utils.hardware_spec import ARC_SPEC, ArcSpec
+from arc.utils.util import clamp
 
 LOGGER = logging.getLogger(__name__)
 

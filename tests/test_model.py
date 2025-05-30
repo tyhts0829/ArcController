@@ -9,9 +9,9 @@ Targets:
 import logging
 
 import pytest
+from models.model import Model, RingState
 
-from src.enums.enums import ValueStyle
-from src.model.model import Model, RingState
+from enums.enums import ValueStyle
 
 
 # ----------------------------------------------------------------------

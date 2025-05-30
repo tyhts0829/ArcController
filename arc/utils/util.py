@@ -57,7 +57,9 @@ def clamp(x: _T, lo: _T, hi: _T) -> _T:
     return max(lo, min(hi, x))
 
 
-def config_loader(cfg_path: Path = Path("src/config/config.yaml")) -> DictConfig | ListConfig:
+def config_loader(
+    cfg_path: Path = Path("/Users/tyhts0829/Documents/ArcController/arc/config/config.yaml"),
+) -> DictConfig | ListConfig:
     """YAML 設定ファイルを読み込み `OmegaConf` オブジェクトを返す。
 
     Args:

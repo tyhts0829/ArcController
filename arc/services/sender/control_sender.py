@@ -10,12 +10,14 @@ midi_sender
 
 import asyncio
 import logging
+import threading
 from typing import Any
 
 import aiosc  # type: ignore
+import mido
 import rtmidi  # type: ignore
 
-from src.utils.util import clamp
+from arc.utils.util import clamp
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,24 +39,38 @@ class MidiSender:
     """
 
     def __init__(self, port_name: str = "ArcController OUT") -> None:
-        self._midi_out: Any = rtmidi.MidiOut()  # type: ignore
-        try:
-            # macOS: IAC Driver, Windows: loopMIDI など
-            self._midi_out.open_virtual_port(port_name)
-        except (rtmidi.InvalidPortError, RuntimeError):  # type: ignore[attr-defined]
-            # 既存ポート 0 番へフォールバック
-            ports = self._midi_out.get_ports()
-            if ports:
-                self._midi_out.open_port(0)
+        self.port_name = port_name
+        self.port = None
+        self.thread = None
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+    def start(self):
+        """MIDI送信を開始"""
+        try:
+            mido.set_backend("mido.backends.rtmidi")
+            self.port = mido.open_output(self.port_name, virtual=True)  # type: ignore
+            LOGGER.info("MIDI 送信ポート '%s' を作成", self.port_name)
+            return True
+        except Exception as e:
+            LOGGER.error("MIDI 送信ポートの作成に失敗: %s", e)
+            return False
+
+    def stop(self):
+        """MIDI送信を停止"""
+        if self.thread:
+            self.thread.join()
+        if self.port:
+            self.port.close()
+            LOGGER.info("MIDI 送信ポートを閉じました")
+
     def send_cc_7bit(self, cc_num: int, value: float, channel: int = 0) -> None:
         """7‑bit Control‑Change を送信する。"""
         value = int(clamp(value * 127, 0, 127))
         LOGGER.debug("MIDI 7‑bit CC → ch=%d cc=%d value=%d", channel, cc_num, value)
-        self._midi_out.send_message([0xB0 | channel, cc_num, value])
+        msg = mido.Message("control_change", channel=channel, control=cc_num, value=value)
+        self.port.send(msg)  # type: ignore
 
     def send_cc_14bit(self, cc_num: int, value: float, channel: int = 0) -> None:
         """14‑bit Control‑Change を MSB/LSB のペアで送信する。
@@ -72,8 +88,10 @@ class MidiSender:
             msb,
             lsb,
         )
-        self._midi_out.send_message([0xB0 | channel, cc_num, msb])
-        self._midi_out.send_message([0xB0 | channel, cc_num + 32, lsb])
+        msg_msb = mido.Message("control_change", channel=channel, control=cc_num, value=msb)
+        msg_lsb = mido.Message("control_change", channel=channel, control=cc_num + 32, value=lsb)
+        self.port.send(msg_msb)  # type: ignore
+        self.port.send(msg_lsb)  # type: ignore
 
 
 # ----------------------------------------------------------------------

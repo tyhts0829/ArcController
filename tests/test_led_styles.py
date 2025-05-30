@@ -1,7 +1,8 @@
 """Tests for LED style classes in src.renderer.led_styles."""
 
-from src.enums.enums import ValueStyle
-from src.services.renderer.led_styles import BipolarStyle, DotStyle, PotentiometerStyle
+from services.renderers.led_styles import BipolarStyle, DotStyle, PotentiometerStyle
+
+from enums.enums import ValueStyle
 
 MAX_BRIGHTNESS = 10  # Match the value used in config.yaml
 

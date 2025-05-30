@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import monome
 
-from src.model.model import Model
-from src.modes.base_mode import BaseMode
-from src.services.lfo.lfo_engine import LFOEngine
-from src.services.renderer.led_renderer import LedRenderer
+from arc.models.model import Model
+from arc.modes.base_mode import BaseMode
+from arc.services.lfo.lfo_engine import LFOEngine
+from arc.services.renderers.led_renderer import LedRenderer
 
 
 class ReadyMode(BaseMode):

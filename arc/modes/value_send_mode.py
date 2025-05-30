@@ -12,11 +12,11 @@ mode.value_send_mode
 
 import monome
 
-from src.enums.enums import LfoStyle, ValueStyle
-from src.model.model import Model
-from src.modes.base_mode import BaseMode
-from src.services.renderer.led_renderer import LedRenderer
-from src.services.sender.control_sender import MidiSender
+from arc.enums.enums import LfoStyle, ValueStyle
+from arc.models.model import Model
+from arc.modes.base_mode import BaseMode
+from arc.services.renderers.led_renderer import LedRenderer
+from arc.services.sender.control_sender import MidiSender
 
 
 class ValueSendMode(BaseMode):

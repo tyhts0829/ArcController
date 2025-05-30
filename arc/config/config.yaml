@@ -2,9 +2,8 @@
 # グローバル設定
 # ------------------------------------------------------------
 globals:
-  # ログレベル（main.py の setup_logging に渡す）
   logging:
-    level: "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 services:
   lfo_engine:

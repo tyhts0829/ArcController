@@ -6,18 +6,18 @@ import multiprocessing
 
 from omegaconf import DictConfig, ListConfig
 
-from src.controller.controller import Controller
-from src.enums.enums import Mode
-from src.model.model import Model
-from src.modes.disconnect_mode import DisconnectMode
-from src.modes.layer_select_mode import LayerSelectMode
-from src.modes.preset_select_mode import PresetSelectMode
-from src.modes.ready_mode import ReadyMode
-from src.modes.value_send_mode import ValueSendMode
-from src.services.lfo.lfo_engine import LFOEngine
-from src.services.renderer.led_renderer import LedRenderer
-from src.services.sender.control_sender import MidiSender
-from src.utils.util import config_loader, setup_logging, setup_serialosc
+from arc.controller.controller import Controller
+from arc.enums.enums import Mode
+from arc.models.model import Model
+from arc.modes.disconnect_mode import DisconnectMode
+from arc.modes.layer_select_mode import LayerSelectMode
+from arc.modes.preset_select_mode import PresetSelectMode
+from arc.modes.ready_mode import ReadyMode
+from arc.modes.value_send_mode import ValueSendMode
+from arc.services.lfo.lfo_engine import LFOEngine
+from arc.services.renderers.led_renderer import LedRenderer
+from arc.services.sender.control_sender import MidiSender
+from arc.utils.util import config_loader, setup_logging, setup_serialosc
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +32,12 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     model = Model.from_config(cfg)
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
     midi_sender = MidiSender()
+
+    # MIDI送信を開始
+    if not midi_sender.start():
+        LOGGER.error("MIDI送信の初期化に失敗しました")
+        return
+
     lfo_engine = LFOEngine(
         model=model, led_renderer=led_renderer, midi_sender=midi_sender, fps=cfg.services.lfo_engine.fps
     )
@@ -67,9 +73,10 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         LOGGER.info("Shutting down: stopping LFO and turning off LEDs")
         await lfo_engine.stop()
         led_renderer.all_off()
+        midi_sender.stop()
 
 
-def _sync_run() -> None:
+def run() -> None:
     """設定ファイルの読み込みやログ設定などを行った上でアプリケーションを実行する同期版関数。
 
     他のモジュールからインポートして呼び出しやすいように用意する。
@@ -85,32 +92,5 @@ def _sync_run() -> None:
         LOGGER.info("Received exit signal, shutting down application")
 
 
-def run(detach: bool = True):
-    """Controller を起動するユーティリティ関数。
-
-    クリエーティブコーディング側では::
-
-        import arc
-        proc = arc.run()  # 非同期で起動、以後ブロッキングしない
-
-    と書くだけで、内部的に別プロセスとして Controller が立ち上がる。
-
-    Args:
-        detach (bool, optional): True の場合はデーモン子プロセスとして起動し、
-            `multiprocessing.Process` オブジェクトを返す。False の場合は
-            現在のプロセスをブロックして `_sync_run()` を実行する。
-
-    Returns:
-        multiprocessing.Process | None: detach=True なら起動した子プロセス、
-            False なら None。
-    """
-    if detach:
-        proc = multiprocessing.Process(target=_sync_run, daemon=True)
-        proc.start()
-        return proc
-    _sync_run()
-    return None
-
-
 if __name__ == "__main__":
-    _sync_run()
+    run()

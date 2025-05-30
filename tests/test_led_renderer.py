@@ -5,9 +5,10 @@ These tests focus on:
 2. Basic structural properties of the returned levels array.
 """
 
-from src.enums.enums import LedStyle, ValueStyle
-from src.model.model import RingState
-from src.services.renderer.led_renderer import LedRenderer
+from models.model import RingState
+from services.renderers.led_renderer import LedRenderer
+
+from enums.enums import LedStyle, ValueStyle
 
 
 def test_build_levels_reinstantiates_style():

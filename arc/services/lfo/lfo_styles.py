@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 
 import noise
 
-from src.enums.enums import LfoStyle
-from src.model.model import RingState
+from arc.enums.enums import LfoStyle
+from arc.models.model import RingState
 
 LOGGER = logging.getLogger(__name__)
 

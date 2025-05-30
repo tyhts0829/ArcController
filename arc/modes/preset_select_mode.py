@@ -25,9 +25,9 @@ from collections import defaultdict
 
 import monome
 
-from src.model.model import Model
-from src.modes.base_mode import BaseMode
-from src.services.renderer.led_renderer import LedRenderer
+from arc.models.model import Model
+from arc.modes.base_mode import BaseMode
+from arc.services.renderers.led_renderer import LedRenderer
 
 
 class PresetSelectMode(BaseMode):
