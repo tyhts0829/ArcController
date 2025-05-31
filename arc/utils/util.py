@@ -68,7 +68,7 @@ def config_loader(cfg_path: Optional[Path] = None) -> DictConfig | ListConfig:
         OmegaConf: 読み込まれた DictConfig。
     """
     if cfg_path is None:
-        cfg_path = Path(__file__).parent / "config" / "config.yaml"
+        cfg_path = Path(__file__).parents[1] / "config" / "config.yaml"
     else:
         cfg_path = Path(cfg_path)
 

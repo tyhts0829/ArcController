@@ -10,12 +10,10 @@ midi_sender
 
 import asyncio
 import logging
-import threading
 from typing import Any
 
 import aiosc  # type: ignore
 import mido
-import rtmidi  # type: ignore
 
 from arc.utils.util import clamp
 
