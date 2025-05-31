@@ -60,11 +60,13 @@ class Controller(monome.ArcApp):
         self,
         model: Model,
         mode_mapping: dict[Mode, BaseMode],
+        long_press_duration: float = 0.2,
     ) -> None:
         super().__init__()
         self.model = model
         self.state: Optional[Mode] = None
         self._modes: dict[Mode, BaseMode] = mode_mapping
+        self._long_press_duration = long_press_duration
         self.ready_mode = typing.cast(ReadyMode, self._modes[Mode.READY_MODE])
         self.value_send_mode = typing.cast(ValueSendMode, self._modes[Mode.VALUE_SEND_MODE])
         self.layer_select_mode = typing.cast(LayerSelectMode, self._modes[Mode.LAYER_SELECT_MODE])
@@ -161,12 +163,12 @@ class Controller(monome.ArcApp):
 
     def _start_long_press_timer(self) -> None:
         """
-        長押し判定用タイマーを 0.5 秒で開始する。
+        長押し判定用タイマーを設定された時間で開始する。
         既存のタイマーがあればキャンセルしてから新たに開始する。
         """
         self._cancel_long_press_timer()
         loop = asyncio.get_running_loop()
-        self._long_press_timer = loop.call_later(0.2, self._on_long_press)
+        self._long_press_timer = loop.call_later(self._long_press_duration, self._on_long_press)
 
     def _cancel_long_press_timer(self) -> None:
         """
@@ -178,7 +180,7 @@ class Controller(monome.ArcApp):
 
     def _on_long_press(self) -> None:
         """
-        0.5 秒経過後も押下状態が継続している場合に長押しイベントを発火させる。
+        設定時間経過後も押下状態が継続している場合に長押しイベントを発火させる。
         """
         if self._is_pressed:
             self.trigger("long_press")  # type: ignore

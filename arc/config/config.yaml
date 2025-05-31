@@ -11,6 +11,9 @@ services:
   led_renderer:
     max_brightness: 10
 
+controller:
+  long_press_duration: 0.2 # 長押しと判定するまでの時間（秒）
+
 mode:
   preset_select_mode:
     threshold: 100

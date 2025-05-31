@@ -64,6 +64,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     app = Controller(
         model=model,
         mode_mapping=mode_mapping,
+        long_press_duration=cfg.controller.long_press_duration,
     )
 
     serialosc = setup_serialosc(app)
