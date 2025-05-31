@@ -29,11 +29,6 @@ class MidiSender:
     Args:
         port_name (str): 作成する仮想ポート名。
 
-    Examples:
-        >>> from services.sender.control_sender import MidiSender
-        >>> midi = MidiSender()                  # "ArcController OUT" という仮想ポートが作成される
-        >>> midi.send_cc_7bit(20, 64)            # CC #20, 値 64 (0x40) を送信
-        >>> midi.send_cc_14bit(21, 8192)         # CC #21 (MSB/LSB) に 14‑bit 値 0x2000 を送信
     """
 
     def __init__(self, port_name: str = "ArcController OUT") -> None:
