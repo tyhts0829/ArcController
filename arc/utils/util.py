@@ -9,7 +9,7 @@ Arc アプリ全体で共有されるユーティリティ関数群。
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, TypeVar, overload
+from typing import Any, Optional, TypeVar, overload
 
 import monome
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -57,9 +57,7 @@ def clamp(x: _T, lo: _T, hi: _T) -> _T:
     return max(lo, min(hi, x))
 
 
-def config_loader(
-    cfg_path: Path = Path("/Users/tyhts0829/Documents/ArcController/arc/config/config.yaml"),
-) -> DictConfig | ListConfig:
+def config_loader(cfg_path: Optional[Path] = None) -> DictConfig | ListConfig:
     """YAML 設定ファイルを読み込み `OmegaConf` オブジェクトを返す。
 
     Args:
@@ -69,6 +67,11 @@ def config_loader(
     Returns:
         OmegaConf: 読み込まれた DictConfig。
     """
+    if cfg_path is None:
+        cfg_path = Path(__file__).parent / "config" / "config.yaml"
+    else:
+        cfg_path = Path(cfg_path)
+
     return OmegaConf.load(str(cfg_path))
 
 
