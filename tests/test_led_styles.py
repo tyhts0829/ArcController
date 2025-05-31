@@ -1,8 +1,15 @@
-"""Tests for LED style classes in src.renderer.led_styles."""
+"""Tests for LED style classes in arc.services.renderers.led_styles."""
 
-from services.renderers.led_styles import BipolarStyle, DotStyle, PotentiometerStyle
+from arc.services.renderers.led_styles import (
+    BipolarStyle,
+    DotStyle,
+    PotentiometerStyle,
+    PerlinLedStyle,
+    LED_STYLE_MAP,
+    get_led_instance,
+)
 
-from enums.enums import ValueStyle
+from arc.enums.enums import LedStyle, ValueStyle
 
 MAX_BRIGHTNESS = 10  # Match the value used in config.yaml
 
@@ -56,3 +63,69 @@ def test_bipolar_span_positive_and_negative():
     levels_neg = style.build_levels(-0.5, ValueStyle.BIPOLAR).copy()
     assert levels_neg[0] == MAX_BRIGHTNESS
     assert levels_neg[43] == dim
+
+
+def test_style_enum_instance_method():
+    """Test that style_enum() instance method returns correct enum for each style."""
+    # Create instances of each style
+    dot_style = DotStyle(max_brightness=MAX_BRIGHTNESS)
+    pot_style = PotentiometerStyle(max_brightness=MAX_BRIGHTNESS)
+    bipolar_style = BipolarStyle(max_brightness=MAX_BRIGHTNESS)
+    perlin_style = PerlinLedStyle(max_brightness=MAX_BRIGHTNESS)
+    
+    # Test style_enum() returns correct enum
+    assert dot_style.style_enum() == LedStyle.DOT
+    assert pot_style.style_enum() == LedStyle.POTENTIOMETER
+    assert bipolar_style.style_enum() == LedStyle.BIPOLAR
+    assert perlin_style.style_enum() == LedStyle.PERLIN
+
+
+def test_led_style_map_correctness():
+    """Test that LED_STYLE_MAP contains all LedStyle enums mapped to correct classes."""
+    # Verify all enums are in the map
+    assert set(LED_STYLE_MAP.keys()) == {
+        LedStyle.DOT,
+        LedStyle.POTENTIOMETER,
+        LedStyle.BIPOLAR,
+        LedStyle.PERLIN,
+    }
+    
+    # Verify correct class mappings
+    assert LED_STYLE_MAP[LedStyle.DOT] == DotStyle
+    assert LED_STYLE_MAP[LedStyle.POTENTIOMETER] == PotentiometerStyle
+    assert LED_STYLE_MAP[LedStyle.BIPOLAR] == BipolarStyle
+    assert LED_STYLE_MAP[LedStyle.PERLIN] == PerlinLedStyle
+    
+    # Verify get_led_instance factory function
+    for led_style, expected_class in LED_STYLE_MAP.items():
+        instance = get_led_instance(led_style, max_brightness=MAX_BRIGHTNESS)
+        assert isinstance(instance, expected_class)
+        assert instance.max_brightness == MAX_BRIGHTNESS
+
+
+def test_style_classmethod():
+    """Test that each style class has a style() classmethod returning correct enum."""
+    # Test each style class's classmethod
+    assert DotStyle.style() == LedStyle.DOT
+    assert PotentiometerStyle.style() == LedStyle.POTENTIOMETER
+    assert BipolarStyle.style() == LedStyle.BIPOLAR
+    assert PerlinLedStyle.style() == LedStyle.PERLIN
+    
+    # Verify the relationship between classmethod and instance method
+    styles = [
+        (DotStyle, LedStyle.DOT),
+        (PotentiometerStyle, LedStyle.POTENTIOMETER),
+        (BipolarStyle, LedStyle.BIPOLAR),
+        (PerlinLedStyle, LedStyle.PERLIN),
+    ]
+    
+    for style_class, expected_enum in styles:
+        # Class method should return enum
+        assert style_class.style() == expected_enum
+        
+        # Instance method should return same enum
+        instance = style_class(max_brightness=MAX_BRIGHTNESS)
+        assert instance.style_enum() == expected_enum
+        
+        # style_enum() should use the class's style() method
+        assert instance.style_enum() == instance.__class__.style()

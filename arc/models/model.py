@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Iterator, List
+from typing import Iterator, List
 
 from arc.enums.enums import LedStyle, LfoStyle, ValueStyle
 from arc.utils.hardware_spec import ARC_SPEC
@@ -111,13 +111,6 @@ class RingState:
     value_gain: float = 0.001
     lfo_freq_gain: float = 0.0005
 
-    # 変数を書き換えたときにログ出力するフック。TODO: いずれやめる
-    def __setattr__(self, name: str, value: Any) -> None:
-        old = self.__dict__.get(name, None)
-        super().__setattr__(name, value)
-        if old != value:
-            LOGGER.debug("%s: %s -> %s", name, fmt(old), fmt(value))
-
     def apply_preset(self, preset: dict) -> None:
         """プリセットから各種スタイルを更新し、BIPOLAR なら current_value を 0.5 に補正する。
 
@@ -129,7 +122,9 @@ class RingState:
         self.lfo_style = LfoStyle(preset["lfo_style"])
         # ValueStyle が BIPOLAR に切り替わった場合、論理的な中央値をセットする
         if self.value_style == ValueStyle.BIPOLAR or self.led_style == LedStyle.BIPOLAR:
+            old_value = self.value
             self.value = 0.5
+            LOGGER.debug("[CC%d] value: %s -> %s (preset: BIPOLAR)", self.cc_number, fmt(old_value), fmt(self.value))
 
     def apply_delta(self, delta: int) -> None:
         """リングの現在値をスタイルに応じて更新する。
@@ -144,7 +139,9 @@ class RingState:
         if style != ValueStyle.INFINITE:  # 無限値は制限しない
             new_val = clamp(new_val, 0.0, 1.0)
 
+        old_value = self.value
         self.value = new_val
+        LOGGER.debug("[CC%d] value: %s -> %s", self.cc_number, fmt(old_value), fmt(self.value))
 
     def apply_lfo_delta(self, delta: float) -> None:
         """LFO 周波数を 0.0‒1.0 範囲で更新する。
@@ -152,8 +149,10 @@ class RingState:
         Args:
             delta (float): 入力エンコーダの増分。
         """
+        old_freq = self.lfo_frequency
         new_val = self.lfo_frequency + delta * self.lfo_freq_gain
         self.lfo_frequency = clamp(new_val, 0.0, 1.0)
+        LOGGER.debug("[CC%d] lfo_frequency: %s -> %s", self.cc_number, fmt(old_freq), fmt(self.lfo_frequency))
 
     def cycle_preset(self, step: int = 1) -> None:
         """プリセットインデックスを循環的に進める。"""
@@ -161,7 +160,7 @@ class RingState:
         if not self._presets:
             LOGGER.warning("Preset list is empty – cannot cycle preset.")
             return
-        LOGGER.info("Preset %d -> %d", self.preset_index, (self.preset_index + step) % len(self._presets))
+        LOGGER.info("[CC%d] Preset %d -> %d", self.cc_number, self.preset_index, (self.preset_index + step) % len(self._presets))
         self.preset_index = (self.preset_index + step) % len(self._presets)
         self.apply_preset(self._presets[self.preset_index])
 

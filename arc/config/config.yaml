@@ -3,7 +3,7 @@
 # ------------------------------------------------------------
 globals:
   logging:
-    level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    level: "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 services:
   lfo_engine:
