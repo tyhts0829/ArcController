@@ -37,14 +37,21 @@ class Model:
             num_layers = 4
             LOGGER.warning("cfg.model.num_layers not found – fallback to %d layers", num_layers)
 
+        # cc_base を config から取得
+        try:
+            cc_base = cfg.senders.midi.cc_base
+        except AttributeError:
+            cc_base = 0
+            LOGGER.warning("cfg.senders.midi.cc_base not found – fallback to %d", cc_base)
+
         model = cls(num_layers=num_layers)
 
         # プリセットと CC 番号を各リングに適用
         default_preset = cfg.presets[0]
         for layer_idx, layer in enumerate(model.layers):
             for ring_idx, ring in enumerate(layer):
-                # cc_number を 1‒16 で割り当てる (4 レイヤー × 4 リング)
-                ring.cc_number = layer_idx * ARC_SPEC.rings_per_device + ring_idx + 1
+                # cc_number を cc_base から順に割り当てる (4 レイヤー × 4 リング)
+                ring.cc_number = cc_base + layer_idx * ARC_SPEC.rings_per_device + ring_idx
                 ring.set_presets(cfg.presets)
                 ring.apply_preset(default_preset)
         return model

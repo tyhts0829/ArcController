@@ -28,19 +28,28 @@ class MidiSender:
 
     Args:
         port_name (str): 作成する仮想ポート名。
+        channel (int): MIDIチャンネル (1-16)。内部では0-15に変換して使用。
+        enabled (bool): MIDI送信を有効にするかどうか。
 
     """
 
-    def __init__(self, port_name: str = "ArcController OUT") -> None:
+    def __init__(self, port_name: str, channel: int = 1, enabled: bool = True) -> None:
         self.port_name = port_name
+        # MIDIチャンネル: ユーザー向け表記(1-16) → プロトコル値(0-15)に変換
+        # 音楽ソフトでは「チャンネル1」と表示されるが、MIDI規格では内部的に0を使用
+        self.channel = max(0, min(15, channel - 1))
+        self.enabled = enabled
         self.port = None
         self.thread = None
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def start(self):
+    def start(self) -> bool:
         """MIDI送信を開始"""
+        if not self.enabled:
+            LOGGER.info("MIDI 送信は無効化されています")
+            return False
         try:
             mido.set_backend("mido.backends.rtmidi")
             self.port = mido.open_output(self.port_name, virtual=True)  # type: ignore
@@ -50,26 +59,37 @@ class MidiSender:
             LOGGER.error("MIDI 送信ポートの作成に失敗: %s", e)
             return False
 
-    def stop(self):
+    def stop(self) -> None:
         """MIDI送信を停止"""
+        if not self.enabled:
+            return
         if self.thread:
             self.thread.join()
         if self.port:
             self.port.close()
+            self.port = None
             LOGGER.info("MIDI 送信ポートを閉じました")
 
-    def send_cc_7bit(self, cc_num: int, value: float, channel: int = 0) -> None:
+    def send_cc_7bit(self, cc_num: int, value: float, channel: int | None = None) -> None:
         """7‑bit Control‑Change を送信する。"""
+        if not self.enabled or self.port is None:
+            return
+        if channel is None:
+            channel = self.channel
         value = int(clamp(value * 127, 0, 127))
         LOGGER.debug("MIDI 7‑bit CC → ch=%d cc=%d value=%d", channel, cc_num, value)
         msg = mido.Message("control_change", channel=channel, control=cc_num, value=value)
         self.port.send(msg)  # type: ignore
 
-    def send_cc_14bit(self, cc_num: int, value: float, channel: int = 0) -> None:
+    def send_cc_14bit(self, cc_num: int, value: float, channel: int | None = None) -> None:
         """14‑bit Control‑Change を MSB/LSB のペアで送信する。
 
         *MSB* = ``cc_num``, *LSB* = ``cc_num + 32`` という MIDI 1.0 の標準に従う。
         """
+        if not self.enabled or self.port is None:
+            return
+        if channel is None:
+            channel = self.channel
         value = int(clamp(value * 16383, 0, 16383))
         msb = (value >> 7) & 0x7F
         lsb = value & 0x7F
@@ -90,13 +110,13 @@ class MidiSender:
 # ----------------------------------------------------------------------
 # OSC Sender (aiosc ベース)
 # ----------------------------------------------------------------------
-class _AioOscProtocol(aiosc.OSCProtocol):
+class _AiOscProtocol(aiosc.OSCProtocol):
     """受信ハンドラ無し・送り専用のプロトコル。"""
 
     pass
 
 
-class AioOscSender:
+class AiOscSender:
     """aiosc を用いた軽量 OSC 送信クライアント。
 
     引数で指定した ``host`` / ``port`` へ **非同期ループ共有** で
@@ -128,13 +148,13 @@ class AioOscSender:
 
         # 送信専用エンドポイントを作成
         coro = loop.create_datagram_endpoint(
-            lambda: _AioOscProtocol(),
+            lambda: _AiOscProtocol(),
             local_addr=("0.0.0.0", 0),  # OS にポート番号を任せる
             remote_addr=(host, port),
         )
         transport, protocol = loop.run_until_complete(coro)
         self._transport: asyncio.DatagramTransport = transport
-        self._protocol: _AioOscProtocol = protocol  # type: ignore
+        self._protocol: _AiOscProtocol = protocol  # type: ignore
 
     # ------------------------------------------------------------------
     # Public API

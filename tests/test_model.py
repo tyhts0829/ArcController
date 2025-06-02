@@ -252,6 +252,7 @@ class TestModel:
         # モックの設定オブジェクト
         cfg = Mock()
         cfg.model.num_layers = 2
+        cfg.senders.midi.cc_base = 1
         cfg.presets = [
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"},
             {"value_style": "bipolar", "led_style": "bipolar", "lfo_style": "perlin"},
@@ -282,6 +283,7 @@ class TestModel:
         cfg = Mock()
         # AttributeErrorを発生させる
         cfg.model = Mock(spec=[])
+        cfg.senders = Mock(spec=[])
         cfg.presets = [
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"}
         ]
@@ -308,6 +310,7 @@ class TestIntegration:
         # 設定からモデルを作成
         cfg = Mock()
         cfg.model.num_layers = 1
+        cfg.senders.midi.cc_base = 0
         cfg.presets = [
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"},
             {"value_style": "midi_7_bit", "led_style": "dot", "lfo_style": "perlin"},

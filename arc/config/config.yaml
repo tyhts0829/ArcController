@@ -18,6 +18,13 @@ mode:
   preset_select_mode:
     threshold: 100
 
+senders:
+  midi:
+    enabled: false # MIDI送信を有効にする
+    port_name: "ArcController OUT" # MIDI出力ポート名
+    channel: 1 # MIDIチャンネル
+    cc_base: 0 # MIDI CCのベース番号
+
 # ------------------------------------------------------------
 # モデル設定
 # ------------------------------------------------------------

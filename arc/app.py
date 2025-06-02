@@ -35,13 +35,11 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     loop = asyncio.get_running_loop()
     model = Model.from_config(cfg)
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
-    midi_sender = MidiSender()
 
-    # MIDI送信を開始
-    if not midi_sender.start():
-        LOGGER.error("MIDI送信の初期化に失敗しました")
-        return
-
+    # MIDI設定を取得
+    midi_config = cfg.senders.midi
+    midi_sender = MidiSender(port_name=midi_config.port_name, channel=midi_config.channel, enabled=midi_config.enabled)
+    midi_sender.start()
     lfo_engine = LFOEngine(
         model=model, led_renderer=led_renderer, midi_sender=midi_sender, fps=cfg.services.lfo_engine.fps
     )
