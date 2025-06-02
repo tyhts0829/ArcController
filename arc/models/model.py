@@ -26,23 +26,24 @@ class Model:
     active_layer_idx: int = 0  # 現在の編集対象レイヤー
 
     def __post_init__(self) -> None:
-        # num_layers に基づいて layers を生成
         self.layers = [LayerState(name=f"L{i}") for i in range(self.num_layers)]
 
     @classmethod
-    def from_config(cls, cfg) -> "Model":
+    def from_config(cls, cfg, cc_base: int) -> "Model":
+        """設定から Model を生成する。
+
+        Args:
+            cfg: OmegaConf 設定オブジェクト
+            cc_base: MIDI CC番号の基準値（デフォルト: 0）
+
+        Returns:
+            設定に基づいて初期化された Model インスタンス
+        """
         try:
             num_layers = cfg.model.num_layers
         except AttributeError:
             num_layers = 4
             LOGGER.warning("cfg.model.num_layers not found – fallback to %d layers", num_layers)
-
-        # cc_base を config から取得
-        try:
-            cc_base = cfg.senders.midi.cc_base
-        except AttributeError:
-            cc_base = 0
-            LOGGER.warning("cfg.senders.midi.cc_base not found – fallback to %d", cc_base)
 
         model = cls(num_layers=num_layers)
 
@@ -167,7 +168,9 @@ class RingState:
         if not self._presets:
             LOGGER.warning("Preset list is empty – cannot cycle preset.")
             return
-        LOGGER.info("[CC%d] Preset %d -> %d", self.cc_number, self.preset_index, (self.preset_index + step) % len(self._presets))
+        LOGGER.info(
+            "[CC%d] Preset %d -> %d", self.cc_number, self.preset_index, (self.preset_index + step) % len(self._presets)
+        )
         self.preset_index = (self.preset_index + step) % len(self._presets)
         self.apply_preset(self._presets[self.preset_index])
 

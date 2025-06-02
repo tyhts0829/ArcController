@@ -2,8 +2,8 @@
 ------------------
 
 ReadyMode は Arc デバイスが *ready*（接続完了）になった直後に一度だけ呼び出される
-初期化用モードです。LEDRenderer にデバイスを紐付け、LED を全消灯し、LFO エンジンを
-起動するだけなので、キー／リング入力は無視します。
+初期化用モードです。LEDRenderer にデバイスを紐付け、LED を全消灯し、
+初期状態を表示します。キー／リング入力は無視します。
 """
 
 from __future__ import annotations
@@ -20,7 +20,6 @@ class ReadyMode(BaseMode):
     """Arc 接続直後の初期化処理を担当するモード。
 
     * LedRenderer に Arc インスタンスを紐付け、全 LED を消灯
-    * LfoEngine を起動してアニメーションを開始
     * 初回フレームを強制描画して UI を即時更新
 
     Args:
@@ -47,10 +46,12 @@ class ReadyMode(BaseMode):
         # デバイスを LedRenderer に DI し、クリーンな状態から開始
         self._led_renderer.set_arc(arc)
         self._led_renderer.all_off()
-        # LFO アニメーションをスタート
-        self._lfo_engine.start()
-        # 初回のrendering を行う
 
+        # LFOエンジンが停止している場合は再起動（デバイス再接続時）
+        if not self._lfo_engine.running:
+            self._lfo_engine.start()
+
+        # 初回のrendering
         for layer in self._model:
             for ring_idx, ring_state in enumerate(layer):
                 self._led_renderer.render_value(ring_idx, ring_state)

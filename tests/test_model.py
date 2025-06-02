@@ -252,13 +252,12 @@ class TestModel:
         # モックの設定オブジェクト
         cfg = Mock()
         cfg.model.num_layers = 2
-        cfg.senders.midi.cc_base = 1
         cfg.presets = [
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"},
             {"value_style": "bipolar", "led_style": "bipolar", "lfo_style": "perlin"},
         ]
         
-        model = Model.from_config(cfg)
+        model = Model.from_config(cfg, cc_base=1)
         
         # レイヤー数
         assert model.num_layers == 2
@@ -288,11 +287,14 @@ class TestModel:
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"}
         ]
         
-        model = Model.from_config(cfg)
+        model = Model.from_config(cfg)  # cc_baseはデフォルト値0を使用
         
         # デフォルトの4レイヤーにフォールバック
         assert model.num_layers == 4
         assert len(model.layers) == 4
+        
+        # CC番号もデフォルト値0から開始
+        assert model.layers[0].rings[0].cc_number == 0
 
     def test_layer_names(self):
         """レイヤー名の自動生成"""
@@ -310,13 +312,12 @@ class TestIntegration:
         # 設定からモデルを作成
         cfg = Mock()
         cfg.model.num_layers = 1
-        cfg.senders.midi.cc_base = 0
         cfg.presets = [
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"},
             {"value_style": "midi_7_bit", "led_style": "dot", "lfo_style": "perlin"},
         ]
         
-        model = Model.from_config(cfg)
+        model = Model.from_config(cfg, cc_base=0)
         ring = model[0]
         
         # 初期状態

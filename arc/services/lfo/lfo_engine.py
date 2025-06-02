@@ -43,7 +43,7 @@ class LFOEngine:
         self.led_renderer = led_renderer
         self.midi_sender = midi_sender
         self.fps = fps
-        self._running: bool = False
+        self.running: bool = False
         self._task: asyncio.Task | None = None
         # 各レイヤー・リングごとに保持する LFO
         self._lfos_on_model: dict[tuple[int, int], BaseLfoStyle] = {}
@@ -57,8 +57,8 @@ class LFOEngine:
         二重起動を避けるため、すでに実行中なら何もしない。
         """
         LOGGER.info("LfoEngine: starting")
-        if not self._running:
-            self._running = True
+        if not self.running:
+            self.running = True
             self._task = asyncio.create_task(self._loop())
 
     async def stop(self) -> None:
@@ -69,7 +69,7 @@ class LFOEngine:
             * 呼び出し側は `await engine.stop()` で完全停止を保証できる。
         """
         LOGGER.info("LfoEngine: stopping")
-        self._running = False
+        self.running = False
 
         if self._task is None:  # そもそも起動していない
             return
@@ -101,7 +101,7 @@ class LFOEngine:
         target = prev  # 次フレーム予定時刻
 
         try:
-            while self._running:
+            while self.running:
                 now = loop.time()
                 dt = now - prev
                 prev = now

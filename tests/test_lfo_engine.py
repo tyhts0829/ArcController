@@ -34,7 +34,7 @@ class TestLFOEngine:
         assert engine.led_renderer == led_renderer
         assert engine.midi_sender == midi_sender
         assert engine.fps == 60
-        assert engine._running is False
+        assert engine.running is False
         assert engine._task is None
         assert engine._lfos_on_model == {}
 
@@ -52,7 +52,7 @@ class TestLFOEngine:
 
             engine.start()
 
-            assert engine._running is True
+            assert engine.running is True
             mock_create_task.assert_called_once()
             assert engine._task is not None
 
@@ -72,7 +72,7 @@ class TestLFOEngine:
             with patch.object(engine, "_loop", return_value=None):
                 engine.start()
                 # Verify first start worked
-                assert engine._running is True
+                assert engine.running is True
                 assert mock_create_task.call_count == 1
 
                 # Second start should not create another task
@@ -87,13 +87,13 @@ class TestLFOEngine:
         engine = LFOEngine(model, led_renderer, midi_sender, fps=60)
 
         # Simulate running state
-        engine._running = True
+        engine.running = True
         engine._task = Mock()
 
         # Just test the flag setting part synchronously
-        engine._running = False
+        engine.running = False
 
-        assert engine._running is False
+        assert engine.running is False
 
     def test_stop_when_not_running_sync(self):
         """実行中でない場合でもstop()がエラーなく処理されることを確認（同期版）"""
@@ -104,7 +104,7 @@ class TestLFOEngine:
 
         # Ensure _task is None (engine not running)
         assert engine._task is None
-        assert engine._running is False
+        assert engine.running is False
 
         # Test sync part of stop() - the early return when _task is None
         import asyncio
@@ -122,7 +122,7 @@ class TestLFOEngine:
         finally:
             loop.close()
 
-        assert engine._running is False
+        assert engine.running is False
         assert engine._task is None
 
     @patch("arc.services.lfo.lfo_engine.get_lfo_instance")
@@ -324,7 +324,7 @@ class TestLFOEngine:
         # Stop should handle cancellation gracefully
         await engine.stop()
 
-        assert engine._running is False
+        assert engine.running is False
         assert engine._task is None
 
 
@@ -358,7 +358,7 @@ class TestLFOEngineIntegration:
         engine = LFOEngine(model, led_renderer, midi_sender, fps=60)
 
         # Run one update cycle
-        engine._running = True
+        engine.running = True
 
         # Run one frame of the loop
         with patch("asyncio.sleep", side_effect=[asyncio.CancelledError()]):

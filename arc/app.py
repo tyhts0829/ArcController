@@ -32,17 +32,31 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     Args:
         cfg (OmegaConf): 設定ファイルの内容を保持する `OmegaConf` オブジェクト。
     """
+    # 非同期イベントループを取得
     loop = asyncio.get_running_loop()
-    model = Model.from_config(cfg)
+
+    # モデルの初期化
+    model = Model.from_config(cfg, cc_base=cfg.senders.midi.cc_base)
+    LOGGER.info("Model initialized with %d layers", model.num_layers)
+
+    # LEDレンダラーを初期化
     led_renderer = LedRenderer(max_brightness=cfg.services.led_renderer.max_brightness)
 
-    # MIDI設定を取得
+    # MIDI送信機を初期化・起動
     midi_config = cfg.senders.midi
     midi_sender = MidiSender(port_name=midi_config.port_name, channel=midi_config.channel, enabled=midi_config.enabled)
     midi_sender.start()
+
+    # LFOエンジンを初期化・起動
     lfo_engine = LFOEngine(
-        model=model, led_renderer=led_renderer, midi_sender=midi_sender, fps=cfg.services.lfo_engine.fps
+        model=model,
+        led_renderer=led_renderer,
+        midi_sender=midi_sender,
+        fps=cfg.services.lfo_engine.fps,
     )
+    lfo_engine.start()
+
+    # 各モードの初期化
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
     value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer, midi_sender=midi_sender)
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)
