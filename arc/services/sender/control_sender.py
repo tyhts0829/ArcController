@@ -126,7 +126,7 @@ class AiOscSender:
     Args:
         host (str): 送信先ホスト。デフォルト ``127.0.0.1``。
         port (int): 送信先ポート。デフォルト ``57120``。
-        loop (asyncio.AbstractEventLoop | None): 共有したいイベントループ。
+        enabled (bool): OSC送信を有効にするかどうか。
 
     Examples:
         >>> from services.sender.control_sender import AioOscSender
@@ -141,31 +141,62 @@ class AiOscSender:
         self,
         host: str = "127.0.0.1",
         port: int = 57120,
-        loop: asyncio.AbstractEventLoop | None = None,
+        enabled: bool = True,
     ) -> None:
-        if loop is None:
-            loop = asyncio.get_event_loop()
+        self.host = host
+        self.port = port
+        self.enabled = enabled
+        self._transport: asyncio.DatagramTransport | None = None
+        self._protocol: _AiOscProtocol | None = None
 
-        # 送信専用エンドポイントを作成
-        coro = loop.create_datagram_endpoint(
-            lambda: _AiOscProtocol(),
-            local_addr=("0.0.0.0", 0),  # OS にポート番号を任せる
-            remote_addr=(host, port),
-        )
-        transport, protocol = loop.run_until_complete(coro)
-        self._transport: asyncio.DatagramTransport = transport
-        self._protocol: _AiOscProtocol = protocol  # type: ignore
+    async def start(self) -> bool:
+        """OSC送信を開始"""
+        if not self.enabled:
+            LOGGER.info("OSC 送信は無効化されています")
+            return False
+        try:
+            loop = asyncio.get_running_loop()
+            
+            # 送信専用エンドポイントを作成
+            transport, protocol = await loop.create_datagram_endpoint(
+                lambda: _AiOscProtocol(),
+                local_addr=("0.0.0.0", 0),  # OS にポート番号を任せる
+                remote_addr=(self.host, self.port),
+            )
+            self._transport = transport
+            self._protocol = protocol  # type: ignore
+            LOGGER.info("OSC 送信ポート %s:%d を作成", self.host, self.port)
+            return True
+        except Exception as e:
+            LOGGER.error("OSC 送信ポートの作成に失敗: %s", e)
+            return False
+    
+    def stop(self) -> None:
+        """OSC送信を停止"""
+        if not self.enabled:
+            return
+        if self._transport:
+            self._transport.close()
+            self._transport = None
+            self._protocol = None
+            LOGGER.info("OSC 送信ポートを閉じました")
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
     def send_float(self, address: str, value: float) -> None:
         """OSC アドレスへ float 値を送信する。"""
+        if not self.enabled or self._protocol is None:
+            return
         self._protocol.send(address, float(value))
+        LOGGER.debug("OSC 送信: %s = %f", address, value)
 
     def send_int(self, address: str, value: int) -> None:
         """OSC アドレスへ int 値を送信する。"""
+        if not self.enabled or self._protocol is None:
+            return
         self._protocol.send(address, int(value))
+        LOGGER.debug("OSC 送信: %s = %d", address, value)
 
     def send_bundle(self, bundle: list[tuple[str, Any]]) -> None:
         """複数メッセージをまとめて送信するユーティリティ。
@@ -173,9 +204,12 @@ class AiOscSender:
         Args:
             bundle: (address, value) のペア列。
         """
+        if not self.enabled or self._protocol is None:
+            return
         for addr, val in bundle:
             self._protocol.send(addr, val)
+        LOGGER.debug("OSC バンドル送信: %s", bundle)
 
     def close(self) -> None:
         """ソケットを閉じてリソースを解放する。"""
-        self._transport.close()
+        self.stop()  # stopメソッドを再利用

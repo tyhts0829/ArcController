@@ -20,7 +20,7 @@ from arc.modes.ready_mode import ReadyMode
 from arc.modes.value_send_mode import ValueSendMode
 from arc.services.lfo.lfo_engine import LFOEngine
 from arc.services.renderers.led_renderer import LedRenderer
-from arc.services.sender.control_sender import MidiSender
+from arc.services.sender.control_sender import AiOscSender, MidiSender
 from arc.utils.util import config_loader, setup_logging, setup_serialosc
 
 LOGGER = logging.getLogger(__name__)
@@ -47,18 +47,31 @@ async def main(cfg: DictConfig | ListConfig) -> None:
     midi_sender = MidiSender(port_name=midi_config.port_name, channel=midi_config.channel, enabled=midi_config.enabled)
     midi_sender.start()
 
+    # OSC送信機を初期化・起動
+    osc_config = cfg.senders.osc
+    osc_sender = AiOscSender(host=osc_config.host, port=osc_config.port, enabled=osc_config.enabled)
+    await osc_sender.start()
+
     # LFOエンジンを初期化・起動
     lfo_engine = LFOEngine(
         model=model,
         led_renderer=led_renderer,
         midi_sender=midi_sender,
+        osc_sender=osc_sender,
+        osc_address_prefix=osc_config.address_prefix,
         fps=cfg.services.lfo_engine.fps,
     )
     lfo_engine.start()
 
     # 各モードの初期化
     ready_mode = ReadyMode(model=model, led_renderer=led_renderer, lfo_engine=lfo_engine)
-    value_send_mode = ValueSendMode(model=model, led_renderer=led_renderer, midi_sender=midi_sender)
+    value_send_mode = ValueSendMode(
+        model=model,
+        led_renderer=led_renderer,
+        midi_sender=midi_sender,
+        osc_sender=osc_sender,
+        osc_address_prefix=osc_config.address_prefix,
+    )
     layer_select_mode = LayerSelectMode(model=model, led_renderer=led_renderer)
     disconnect_mode = DisconnectMode(lfo_engine=lfo_engine)
     preset_select_mode = PresetSelectMode(
@@ -91,6 +104,7 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         await lfo_engine.stop()
         led_renderer.all_off()
         midi_sender.stop()
+        osc_sender.stop()
 
 
 def run() -> None:

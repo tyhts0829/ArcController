@@ -12,7 +12,7 @@ from arc.enums.enums import LfoStyle, ValueStyle
 from arc.models.model import Model, RingState
 from arc.services.lfo.lfo_styles import LFO_STYLE_MAP, BaseLfoStyle, get_lfo_instance
 from arc.services.renderers.led_renderer import LedRenderer
-from arc.services.sender.control_sender import MidiSender
+from arc.services.sender.control_sender import AiOscSender, MidiSender
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,12 +25,22 @@ class LFOEngine:
         model (Model): LED 描画対象となるデータモデル。
         led_renderer (LedRenderer): LED を描画するクラス。
         midi_sender (MidiSender): MIDI 送信ユーティリティ。
+        osc_sender (AiOscSender | None): OSC 送信ユーティリティ。
+        osc_address_prefix (str | None): OSC アドレスのプレフィックス。
         fps (int): 1 秒あたりの更新フレーム数。
 
     `stop()` は `async` メソッドとなり、呼び出し側が `await` することで完全停止を保証できます。
     """
 
-    def __init__(self, model: Model, led_renderer: LedRenderer, midi_sender: MidiSender, fps: int):
+    def __init__(
+        self,
+        model: Model,
+        led_renderer: LedRenderer,
+        midi_sender: MidiSender,
+        fps: int,
+        osc_sender: AiOscSender | None = None,
+        osc_address_prefix: str | None = None,
+    ):
         """依存オブジェクトを受け取り、LFO エンジンを初期化する。
 
         Args:
@@ -42,6 +52,8 @@ class LFOEngine:
         self.model = model
         self.led_renderer = led_renderer
         self.midi_sender = midi_sender
+        self.osc_sender = osc_sender
+        self.osc_address_prefix = osc_address_prefix or "/arc"
         self.fps = fps
         self.running: bool = False
         self._task: asyncio.Task | None = None
@@ -161,17 +173,23 @@ class LFOEngine:
         if layer_idx == self.model.active_layer_idx:
             self.led_renderer.render_value(ring_idx, ring_state)
 
-        # LFO が有効なリングは常に MIDI 送信
-        self._send_midi_if_needed(ring_state, old_value)
+        # LFO が有効なリングは常に MIDI/OSC 送信
+        self._send_if_needed(layer_idx, ring_idx, ring_state, old_value)
 
-    def _send_midi_if_needed(self, ring_state: RingState, old_value: float) -> None:
-        """値が変化した場合、または LFO が有効な場合に MIDI を送信する。"""
+    def _send_if_needed(self, layer_idx: int, ring_idx: int, ring_state: RingState, old_value: float) -> None:
+        """値が変化した場合、または LFO が有効な場合に MIDI/OSC を送信する。"""
         # LFO が有効な場合は常に送信（値の微小変化も含む）
         # STATIC の場合は値が実際に変わったときのみ送信
         should_send = ring_state.lfo_style != LfoStyle.STATIC or abs(ring_state.value - old_value) > 1e-6
 
         if should_send:
+            # MIDI送信
             if ring_state.value_style == ValueStyle.MIDI_14BIT:
                 self.midi_sender.send_cc_14bit(ring_state.cc_number, ring_state.value)
             elif ring_state.value_style == ValueStyle.MIDI_7BIT:
                 self.midi_sender.send_cc_7bit(ring_state.cc_number, ring_state.value)
+            
+            # OSC送信
+            if self.osc_sender:
+                address = f"{self.osc_address_prefix}/layer/{layer_idx}/ring/{ring_idx}/value"
+                self.osc_sender.send_float(address, ring_state.value)

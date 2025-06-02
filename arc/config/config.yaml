@@ -24,6 +24,11 @@ senders:
     port_name: "ArcController OUT" # MIDI出力ポート名
     channel: 1 # MIDIチャンネル
     cc_base: 0 # MIDI CCのベース番号
+  osc:
+    enabled: true # OSC送信を有効にする
+    host: "127.0.0.1" # OSC送信先ホスト
+    port: 57120 # OSC送信先ポート
+    address_prefix: "/arc" # OSCアドレスのプレフィックス
 
 # ------------------------------------------------------------
 # モデル設定
@@ -41,7 +46,7 @@ presets:
     led_style: potentiometer
     lfo_style: static
   - name: dot
-    value_style: midi_14_bit
+    value_style: infinite
     led_style: dot
     lfo_style: static
   - name: bipolar

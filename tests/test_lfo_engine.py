@@ -246,8 +246,8 @@ class TestLFOEngine:
         engine._update_ring(0, 0, ring_state, 0.016)
         led_renderer.render_value.assert_not_called()
 
-    def test_send_midi_if_needed_value_change(self):
-        """値が変更された時にMIDIが送信されることを確認（7bit/14bit両方）"""
+    def test_send_if_needed_value_change(self):
+        """値が変更された時にMIDI/OSCが送信されることを確認（7bit/14bit両方）"""
         model = Mock()
         led_renderer = Mock()
         midi_sender = Mock()
@@ -255,17 +255,17 @@ class TestLFOEngine:
 
         # Test 7-bit MIDI
         ring_state = RingState(value_style=ValueStyle.MIDI_7BIT, lfo_style=LfoStyle.STATIC, value=0.5, cc_number=1)
-        engine._send_midi_if_needed(ring_state, old_value=0.4)
+        engine._send_if_needed(0, 0, ring_state, old_value=0.4)
         midi_sender.send_cc_7bit.assert_called_once_with(1, 0.5)
 
         # Test 14-bit MIDI
         midi_sender.reset_mock()
         ring_state.value_style = ValueStyle.MIDI_14BIT
-        engine._send_midi_if_needed(ring_state, old_value=0.4)
+        engine._send_if_needed(0, 0, ring_state, old_value=0.4)
         midi_sender.send_cc_14bit.assert_called_once_with(1, 0.5)
 
-    def test_send_midi_if_needed_no_change(self):
-        """STATICモードで値が変わらない場合はMIDIが送信されないことを確認"""
+    def test_send_if_needed_no_change(self):
+        """STATICモードで値が変わらない場合はMIDI/OSCが送信されないことを確認"""
         model = Mock()
         led_renderer = Mock()
         midi_sender = Mock()
@@ -274,12 +274,12 @@ class TestLFOEngine:
         ring_state = RingState(value_style=ValueStyle.MIDI_7BIT, lfo_style=LfoStyle.STATIC, value=0.5, cc_number=1)
 
         # Same value - should not send
-        engine._send_midi_if_needed(ring_state, old_value=0.5)
+        engine._send_if_needed(0, 0, ring_state, old_value=0.5)
         midi_sender.send_cc_7bit.assert_not_called()
         midi_sender.send_cc_14bit.assert_not_called()
 
-    def test_send_midi_if_needed_lfo_active(self):
-        """LFOがアクティブな場合は値が同じでも常にMIDIが送信されることを確認"""
+    def test_send_if_needed_lfo_active(self):
+        """LFOがアクティブな場合は値が同じでも常にMIDI/OSCが送信されることを確認"""
         model = Mock()
         led_renderer = Mock()
         midi_sender = Mock()
@@ -288,7 +288,7 @@ class TestLFOEngine:
         ring_state = RingState(value_style=ValueStyle.MIDI_7BIT, lfo_style=LfoStyle.PERLIN, value=0.5, cc_number=1)
 
         # Even with same value, LFO active means send
-        engine._send_midi_if_needed(ring_state, old_value=0.5)
+        engine._send_if_needed(0, 0, ring_state, old_value=0.5)
         midi_sender.send_cc_7bit.assert_called_once_with(1, 0.5)
 
     def test_loop_calculates_fps_correctly(self):

@@ -287,7 +287,7 @@ class TestModel:
             {"value_style": "linear", "led_style": "potentiometer", "lfo_style": "static"}
         ]
         
-        model = Model.from_config(cfg)  # cc_baseはデフォルト値0を使用
+        model = Model.from_config(cfg, cc_base=0)  # cc_baseはデフォルト値0を使用
         
         # デフォルトの4レイヤーにフォールバック
         assert model.num_layers == 4
