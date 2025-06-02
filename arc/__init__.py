@@ -18,8 +18,12 @@ __version__ = "1.0.0"
 _arc_process: Optional[multiprocessing.Process] = None
 
 
-def start() -> bool:
+def start(midi: Optional[bool] = None, osc: Optional[bool] = None) -> bool:
     """ArcControllerをバックグラウンドで非同期実行を開始します。
+
+    Args:
+        midi: MIDI送信を有効にするかどうか。Noneの場合はconfig.yamlの設定を使用
+        osc: OSC送信を有効にするかどうか。Noneの場合はconfig.yamlの設定を使用
 
     Returns:
         bool: 正常に開始できた場合True、既に実行中または開始に失敗した場合False
@@ -29,7 +33,7 @@ def start() -> bool:
     if _arc_process is not None and _arc_process.is_alive():
         return False  # 既に実行中
 
-    _arc_process = multiprocessing.Process(target=run)
+    _arc_process = multiprocessing.Process(target=run, kwargs={'midi': midi, 'osc': osc})
     _arc_process.start()
     time.sleep(2)  # ArcControllerがMIDIポートを作成する時間を確保
 

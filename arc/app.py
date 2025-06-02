@@ -107,12 +107,23 @@ async def main(cfg: DictConfig | ListConfig) -> None:
         osc_sender.stop()
 
 
-def run() -> None:
+def run(midi: bool | None = None, osc: bool | None = None) -> None:
     """設定ファイルの読み込みやログ設定などを行った上でアプリケーションを実行する同期版関数。
+
+    Args:
+        midi: MIDI送信を有効にするかどうか。Noneの場合はconfig.yamlの設定を使用
+        osc: OSC送信を有効にするかどうか。Noneの場合はconfig.yamlの設定を使用
 
     他のモジュールからインポートして呼び出しやすいように用意する。
     """
     cfg = config_loader()
+    
+    # 引数でMIDI/OSC設定が指定された場合、設定を上書き
+    if midi is not None:
+        cfg.senders.midi.enabled = midi
+    if osc is not None:
+        cfg.senders.osc.enabled = osc
+    
     level_name = cfg.globals.logging.level.upper()  # type: ignore
     log_level = getattr(logging, level_name, logging.WARNING)
     setup_logging(level=log_level)

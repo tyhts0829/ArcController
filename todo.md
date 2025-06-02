@@ -34,22 +34,8 @@ self.\_values = np.ndarray((4, 4), dtype=np.float32, buffer=self.\_shm.buf)
 # 使用例
 
 import arc
-arc.start()
+arc.start() # 後続の処理をブロッキングしない
 print(arc.ring[0]) # 0.0-1.0 の値を取得
-
-方式 2: サブプロセス通信
-
-# Pipe/Queue ベースで値を定期的に更新
-
-from multiprocessing import Queue
-
-class IPCSender:
-def **init**(self, queue: Queue):
-self.queue = queue
-
-      def send_values(self, model: Model):
-          values = [[ring.value for ring in layer] for layer in model.layers]
-          self.queue.put_nowait(values)
 
 3. アーキテクチャ統合案
 
