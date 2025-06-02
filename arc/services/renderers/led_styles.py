@@ -14,7 +14,6 @@ from abc import ABC, abstractmethod
 from typing import Type
 
 import noise
-import numpy as np
 
 from arc.enums.enums import LedStyle, ValueStyle
 from arc.utils.hardware_spec import ARC_SPEC, ArcSpec
@@ -224,7 +223,15 @@ class PotentiometerStyle(BaseLedStyle):
 
         # 起点(1) → 先端(max) へ線形に輝度を一括で計算
         span = lead_idx_in_arc
-        brightness_values = np.linspace(1, self.max_brightness, span + 1)
+        # Pure Python implementation of linspace
+        if span == 0:
+            brightness_values = [1.0]
+        else:
+            brightness_values = []
+            for i in range(span + 1):
+                brightness = 1.0 + (self.max_brightness - 1.0) * i / span
+                brightness_values.append(brightness)
+        
         for idx_in_arc, brightness in enumerate(brightness_values):
             led_i = arc_indices[idx_in_arc]
             levels[led_i] = int(round(brightness))
