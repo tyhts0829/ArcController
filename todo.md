@@ -34,24 +34,10 @@ self.\_values = np.ndarray((4, 4), dtype=np.float32, buffer=self.\_shm.buf)
 # 使用例
 
 import arc
-arc.start() # 後続の処理をブロッキングしない
-print(arc.ring[0]) # 0.0-1.0 の値を取得
+values = arc.ipc() # 後続の処理をブロッキングしない
+print(values.ring[0]) # ring0 の value を取得
 
 3. アーキテクチャ統合案
-
-# config/config.yaml に追加
-
-senders:
-midi:
-enabled: true
-port_name: "ArcController OUT"
-osc:
-enabled: true
-host: "127.0.0.1"
-port: 57120
-ipc:
-enabled: true
-update_rate: 60 # FPS
 
 4. 実装の段階的アプローチ
 
